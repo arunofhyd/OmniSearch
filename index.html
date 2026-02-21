@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Omni Search - Premium Keynote</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* ==========================================================================
+           1. ROOT & RESET
+           ========================================================================== */
+        :root {
+            --bg-color: #000000;
+            --text-primary: #f5f5f7;
+            --text-secondary: #86868b;
+            --accent-blue: #2997ff;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --font-main: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body, html {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            /* Scroll Snapping for Keynote Feel */
+            scroll-snap-type: y mandatory;
+        }
+
+        /* ==========================================================================
+           2. TYPOGRAPHY & GRADIENTS
+           ========================================================================== */
+        h1, h2, h3 {
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        p {
+            font-size: clamp(1.2rem, 2vw, 1.8rem);
+            line-height: 1.5;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .text-gradient-silver {
+            background: linear-gradient(135deg, #ffffff 0%, #86868b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .text-gradient-blue {
+            background: linear-gradient(135deg, #2997ff 0%, #a2d2ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .text-gradient-purple {
+            background: linear-gradient(135deg, #bf5af2 0%, #ff375f 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .highlight-white {
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        /* ==========================================================================
+           3. SLIDE LAYOUTS
+           ========================================================================== */
+        .slide-container {
+            min-height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 5% 10%;
+            position: relative;
+            scroll-snap-align: start;
+            overflow: hidden;
+        }
+
+        .content-wrapper {
+            max-width: 1400px;
+            width: 100%;
+            z-index: 10;
+        }
+
+        .title-slide {
+            text-align: center;
+        }
+
+        .title-slide h1 {
+            font-size: clamp(4rem, 10vw, 8rem);
+            margin-bottom: 1rem;
+        }
+
+        .title-slide p {
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
+        }
+
+        .section-title {
+            font-size: clamp(3rem, 6vw, 5rem);
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        /* ==========================================================================
+           4. UI COMPONENTS (GLASSMORPHISM)
+           ========================================================================== */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease, background 0.3s ease;
+        }
+
+        .glass-panel:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            width: 100%;
+        }
+
+        .icon-large {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #2997ff, #005bc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Ambient Glow Backgrounds */
+        .ambient-glow {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.4;
+            z-index: 0;
+            animation: float 10s infinite alternate ease-in-out;
+        }
+
+        .glow-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: rgba(41, 151, 255, 0.15); }
+        .glow-2 { bottom: -10%; right: -10%; width: 60vw; height: 60vw; background: rgba(191, 90, 242, 0.1); }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, 50px) scale(1.1); }
+        }
+
+        /* ==========================================================================
+           5. SPECIFIC SLIDE DESIGNS
+           ========================================================================== */
+        
+        /* Slide 3: How it works (Steps) */
+        .steps-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 2rem;
+        }
+        .step-item {
+            flex: 1;
+            text-align: left;
+            border-top: 1px solid var(--glass-border);
+            padding-top: 2rem;
+        }
+        .step-number {
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--glass-border);
+            margin-bottom: 1rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Slide 5: Global Layout */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+        .huge-icon {
+            font-size: clamp(10rem, 20vw, 25rem);
+            text-align: center;
+            background: linear-gradient(135deg, #1c1c1e 0%, #333336 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 40px rgba(41, 151, 255, 0.2);
+        }
+
+        /* Slide 6: Personalization Mockup */
+        .mac-menu-mockup {
+            background: rgba(30, 30, 30, 0.8);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+            overflow: hidden;
+            font-family: monospace;
+            font-size: 1.2rem;
+        }
+        .mac-menu-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .mac-menu-body {
+            padding: 0.5rem;
+        }
+        .mac-menu-item {
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            color: #86868b;
+            display: flex;
+            justify-content: space-between;
+        }
+        .mac-menu-item.active {
+            background: var(--accent-blue);
+            color: #fff;
+        }
+
+        /* Slide 8: Mic Drop */
+        .mic-drop {
+            font-size: clamp(4rem, 8vw, 7rem);
+            line-height: 1.1;
+            text-align: center;
+        }
+
+        /* ==========================================================================
+           6. ANIMATIONS (Triggered via JS)
+           ========================================================================== */
+        .fade-up {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .fade-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .delay-1 { transition-delay: 0.1s; }
+        .delay-2 { transition-delay: 0.2s; }
+        .delay-3 { transition-delay: 0.3s; }
+        .delay-4 { transition-delay: 0.4s; }
+
+        @media (max-width: 768px) {
+            .steps-container, .two-col {
+                flex-direction: column;
+                grid-template-columns: 1fr;
+            }
+            .slide-container { padding: 10% 5%; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Ambient Background Glows -->
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+
+    <!-- Slide 1: Title -->
+    <div class="slide-container title-slide">
+        <div class="content-wrapper">
+            <h1 class="fade-up text-gradient-silver">Omni Search</h1>
+            <p class="fade-up delay-1 text-gradient-blue">Search at the speed of thought.</p>
+        </div>
+    </div>
+
+    <!-- Slide 2: What is it? -->
+    <div class="slide-container">
+        <div class="content-wrapper">
+            <h2 class="section-title fade-up text-gradient-silver" style="margin-bottom: 1rem;">What is Omni Search ?</h2>
+            <p class="fade-up delay-1 text-gradient-blue" style="text-align: center; margin-bottom: 3rem; font-size: 2rem;">A shortcut that simplifies search.</p>
+            <div class="grid-cards">
+                <div class="glass-panel fade-up delay-1">
+                    <i class="fa-brands fa-apple icon-large"></i>
+                    <h3 class="highlight-white" style="margin-bottom: 10px; font-size: 1.8rem;">Native Utility</h3>
+                    <p>Built entirely on macOS native Shortcuts App.</p>
+                </div>
+                <div class="glass-panel fade-up delay-2">
+                    <i class="fa-solid fa-bolt icon-large"></i>
+                    <h3 class="highlight-white" style="margin-bottom: 10px; font-size: 1.8rem;">Customizable</h3>
+                    <p>Tailor according to the needs of the Analyst.</p>
+                </div>
+                <div class="glass-panel fade-up delay-3">
+                    <i class="fa-solid fa-route icon-large"></i>
+                    <h3 class="highlight-white" style="margin-bottom: 10px; font-size: 1.8rem;">Routing Engine</h3>
+                    <p>Not just search, it routes data to the tool you need.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 3: How does it work? -->
+    <div class="slide-container">
+        <div class="content-wrapper">
+            <h2 class="section-title fade-up text-gradient-silver">How does it work?</h2>
+            <div class="steps-container">
+                <div class="step-item fade-up delay-1">
+                    <div class="step-number text-gradient-blue">1</div>
+                    <h3 class="highlight-white" style="margin-bottom: 15px; font-size: 2rem;">Highlight</h3>
+                    <p>Select any text, in any application, anywhere on your screen.</p>
+                </div>
+                <div class="step-item fade-up delay-2">
+                    <div class="step-number text-gradient-purple">2</div>
+                    <h3 class="highlight-white" style="margin-bottom: 15px; font-size: 2rem;">Trigger</h3>
+                    <p>Execute your global keyboard hotkey or right-click context menu.</p>
+                </div>
+                <div class="step-item fade-up delay-3">
+                    <div class="step-number text-gradient-silver">3</div>
+                    <h3 class="highlight-white" style="margin-bottom: 15px; font-size: 2rem;">Route</h3>
+                    <p>Press a single number key to instantly send the text to your destination.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 4: Why do we need it? -->
+    <div class="slide-container">
+        <div class="content-wrapper">
+            <h2 class="section-title fade-up text-gradient-silver">Why do we need it?</h2>
+            <div class="grid-cards">
+                <div class="glass-panel fade-up delay-1" style="text-align: center;">
+                    <i class="fa-solid fa-wind icon-large" style="font-size: 4rem;"></i>
+                    <h3 class="highlight-white" style="margin-top: 1rem; font-size: 2rem;">Zero Friction</h3>
+                    <p style="margin-top: 1rem; font-size: 1.1rem;">Eliminates the context-switching tax.</p>
+                </div>
+                <div class="glass-panel fade-up delay-2" style="text-align: center;">
+                    <i class="fa-solid fa-universal-access icon-large" style="font-size: 4rem;"></i>
+                    <h3 class="highlight-white" style="margin-top: 1rem; font-size: 2rem;">Radically Inclusive</h3>
+                    <p style="margin-top: 1rem; font-size: 1.1rem;">Motor accessible and VoiceOver ready.</p>
+                </div>
+                <div class="glass-panel fade-up delay-3" style="text-align: center;">
+                    <i class="fa-solid fa-crosshairs icon-large" style="font-size: 4rem;"></i>
+                    <h3 class="highlight-white" style="margin-top: 1rem; font-size: 2rem;">Unbroken Focus</h3>
+                    <p style="margin-top: 1rem; font-size: 1.1rem;">Stay locked into your current workflow.</p>
+                </div>
+                <div class="glass-panel fade-up delay-4" style="text-align: center;">
+                    <i class="fa-solid fa-globe icon-large" style="font-size: 4rem;"></i>
+                    <h3 class="highlight-white" style="margin-top: 1rem; font-size: 2rem;">Universal</h3>
+                    <p style="margin-top: 1rem; font-size: 1.1rem;">Universal tool for all projects.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 5: Global Adoption -->
+    <div class="slide-container">
+        <div class="content-wrapper two-col">
+            <div class="fade-up">
+                <h2 class="section-title text-gradient-silver" style="text-align: left; margin-bottom: 1.5rem;">Global Adoption</h2>
+                <div style="margin-bottom: 2rem;">
+                    <h3 class="highlight-white" style="font-size: 2rem; margin-bottom: 0.5rem;">Built for Global Teams.</h3>
+                    <p>Adapts to any regional storefront instantly.</p>
+                </div>
+                <div style="margin-bottom: 2rem;">
+                    <h3 class="highlight-white" style="font-size: 2rem; margin-bottom: 0.5rem;">Instantly Localized.</h3>
+                    <p>Swap 'us' to 'in' to route data globally.</p>
+                </div>
+                <div>
+                    <h3 class="highlight-white" style="font-size: 2rem; margin-bottom: 0.5rem;">Zero Complexity.</h3>
+                    <p>No IT tickets. No onboarding. It just works.</p>
+                </div>
+            </div>
+            <div class="fade-up delay-2" style="display: flex; justify-content: center;">
+                <i class="fa-solid fa-earth-americas huge-icon"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 6: Infinite Personalization -->
+    <div class="slide-container">
+        <div class="content-wrapper two-col">
+            <div class="fade-up delay-2">
+                <!-- CSS UI Mockup of the Tool -->
+                <div class="mac-menu-mockup">
+                    <div class="mac-menu-header">
+                        <i class="fa-solid fa-magnifying-glass"></i> <span style="font-weight: 600;">Omni Search</span>
+                    </div>
+                    <div class="mac-menu-body">
+                        <div class="mac-menu-item"><span>1. Apple Music</span> <span>⌘1</span></div>
+                        <div class="mac-menu-item"><span>2. Marketing Media Tools</span> <span>⌘2</span></div>
+                        <div class="mac-menu-item"><span>3. Wikipedia</span> <span>⌘3</span></div>
+                        <div class="mac-menu-item active"><span>4. PubMed Research</span> <span>⌘4</span></div>
+                        <div class="mac-menu-item"><span>5. Run DigitSpell</span> <span>⌘5</span></div>
+                        <div class="mac-menu-item"><span>6. WebMD</span> <span>⌘6</span></div>
+                        <div class="mac-menu-item"><span>7. Gemini Search</span> <span>⌘7</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="fade-up">
+                <h2 class="section-title text-gradient-silver" style="text-align: left; margin-bottom: 1.5rem;">Infinite Personalization</h2>
+                <ul style="list-style: none;">
+                    <li style="margin-bottom: 1.5rem; display: flex; align-items: flex-start; gap: 1rem;">
+                        <i class="fa-solid fa-plus text-gradient-blue" style="font-size: 1.5rem; margin-top: 5px;"></i>
+                        <div>
+                            <h3 class="highlight-white" style="font-size: 1.8rem;">Infinitely Expandable.</h3>
+                            <p style="font-size: 1.1rem;">Not locked to defaults. Add any database.</p>
+                        </div>
+                    </li>
+                    <li style="margin-bottom: 1.5rem; display: flex; align-items: flex-start; gap: 1rem;">
+                        <i class="fa-solid fa-sliders text-gradient-purple" style="font-size: 1.5rem; margin-top: 5px;"></i>
+                        <div>
+                            <h3 class="highlight-white" style="font-size: 1.8rem;">Tailored Workflows.</h3>
+                            <p style="font-size: 1.1rem;">Build the menu that matches your specific role.</p>
+                        </div>
+                    </li>
+                    <li style="display: flex; align-items: flex-start; gap: 1rem;">
+                        <i class="fa-solid fa-infinity text-gradient-silver" style="font-size: 1.5rem; margin-top: 5px;"></i>
+                        <div>
+                            <h3 class="highlight-white" style="font-size: 1.8rem;">Limitless Destinations.</h3>
+                            <p style="font-size: 1.1rem;">Zero coding required to add new search routes.</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 7: Mic Drop -->
+    <div class="slide-container title-slide">
+        <div class="content-wrapper">
+            <h1 class="mic-drop text-gradient-silver fade-up">Fluid.</h1>
+            <h1 class="mic-drop text-gradient-blue fade-up delay-1">Inclusive.</h1>
+            <h1 class="mic-drop text-gradient-purple fade-up delay-2">Native.</h1>
+            <h1 class="mic-drop highlight-white fade-up delay-3">Universal.</h1>
+        </div>
+    </div>
+
+    <!-- Script to handle Scroll Animations -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.2 // Trigger when 20% of the element is visible
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    } else {
+                        // Optional: remove 'visible' if you want animations to repeat when scrolling back up
+                        entry.target.classList.remove('visible'); 
+                    }
+                });
+            }, observerOptions);
+
+            const fadeElements = document.querySelectorAll('.fade-up');
+            fadeElements.forEach(el => observer.observe(el));
+        });
+    </script>
+</body>
+</html>
