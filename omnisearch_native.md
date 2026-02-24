@@ -13,12 +13,12 @@ This is the recommended, permission-free script currently in use. It includes UR
 on run {input, parameters}
 	-- Retrieve the target URL passed from the macOS Shortcuts input
 	set targetURL to (item 1 of input) as string
-
+	
 	-- CONFIGURATION:
 	-- Set to 'true' to always bring the search window to the front.
 	-- Set to 'false' to update the tab in the background (if the window is already open).
 	set alwaysFocus to true
-
+	
 	-- ==========================================
 	-- URL SANITIZATION & WAF COMPLIANCE
 	-- This block sanitizes all space variations into strict form-encoded spaces ("+") required by Apple Marketing Tools to bypass enterprise Web Application Firewalls (WAF) and prevent 403 errors, while leaving other domains untouched.
@@ -32,11 +32,11 @@ on run {input, parameters}
 		set AppleScript's text item delimiters to oldDelims
 	end if
 	-- ==========================================
-
+	
 	-- Define the path for the temporary cache file used to persist the dedicated window ID
 	set cacheFile to "/tmp/omnisearch_id.txt"
 	set foundWindow to false
-
+	
 	-- PRE-FETCH CACHE DATA
 	-- Parsing outside of the application block prevents namespace conflicts ("Expected end of line" errors)
 	set storedPID to ""
@@ -51,14 +51,24 @@ on run {input, parameters}
 	on error
 		-- Proceed with defaults if cache is missing
 	end try
-
+	
 	-- STEP 1: PROCESS ID TRACKING
-	tell application "Safari" to activate
-
+	-- Check if Safari is running first.
+	set safariRunning to false
+	tell application "System Events"
+		if exists process "Safari" then set safariRunning to true
+	end tell
+	
+	-- If Safari is NOT running, we MUST activate it.
+	-- If alwaysFocus is TRUE, we WANT to activate it immediately.
+	if (safariRunning is false) or (alwaysFocus is true) then
+		tell application "Safari" to activate
+	end if
+	
 	tell application "System Events"
 		set currentPID to unix id of process "Safari" as text
 	end tell
-
+	
 	tell application "Safari"
 		-- STEP 2: WINDOW VALIDATION & ROUTING
 		if (storedPID is equal to currentPID) then
@@ -67,7 +77,7 @@ on run {input, parameters}
 				if exists window id storedID then
 					tell window id storedID
 						set foundWindow to true
-
+						
 						-- ISOLATED TAB ROUTING:
 						if (count of tabs) > 0 then
 							set URL of tab 1 to targetURL
@@ -75,7 +85,7 @@ on run {input, parameters}
 						else
 							make new tab at end of tabs with properties {URL:targetURL}
 						end if
-
+						
 						-- Force window out of the Dock and un-minimize
 						if alwaysFocus is true then
 							set visible to true
@@ -88,21 +98,21 @@ on run {input, parameters}
 				set foundWindow to false
 			end try
 		end if
-
+		
 		-- STEP 3: WINDOW INSTANTIATION
 		if not foundWindow then
 			set initialWindowCount to count of windows
 			make new document with properties {URL:targetURL}
-
+			
 			set timeoutCounter to 0
 			repeat while (count of windows) is initialWindowCount
 				delay 0.1
 				set timeoutCounter to timeoutCounter + 1
 				if timeoutCounter > 15 then exit repeat
 			end repeat
-
+			
 			delay 0.1
-
+			
 			try
 				set bounds of window 1 to {1120, 25, 2240, 1260}
 				set newID to (get id of window 1)
@@ -110,7 +120,7 @@ on run {input, parameters}
 			end try
 		end if
 	end tell
-
+	
 	-- STEP 4: AGGRESSIVE FOCUS STEALING
 	-- Performed outside the Safari block to ensure system-level command priority
 	if alwaysFocus is true then
@@ -125,7 +135,7 @@ on run {input, parameters}
 		end tell
 		tell application "Safari" to activate
 	end if
-
+	
 	return input
 end run
 ```
