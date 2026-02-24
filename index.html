@@ -338,7 +338,7 @@
 <body>
 
     <!-- Fixed Global Download Button -->
-    <a href="#download" class="fixed-download-btn"><i class="fa-solid fa-cloud-arrow-down"></i> Get v1.1</a>
+    <a href="#download" class="fixed-download-btn"><i class="fa-solid fa-cloud-arrow-down"></i> Get v<span class="js-version">1.1</span></a>
 
     <!-- Ambient Background Glows -->
     <div class="ambient-glow glow-1"></div>
@@ -352,12 +352,12 @@
         </div>
     </div>
 
-    <!-- Slide 2: DOWNLOAD & CHANGELOG (Moved directly below Title Slide) -->
+    <!-- Slide 2: DOWNLOAD & CHANGELOG -->
     <div id="download" class="slide-container">
         <div class="content-wrapper two-col">
             <div class="fade-up">
                 <h2 class="section-title text-gradient-silver" style="text-align: left; margin-bottom: 1rem;">Get Omni Search</h2>
-                <h3 class="highlight-white" style="font-size: 2rem; margin-bottom: 1.5rem;">Version 1.1 is now available.</h3>
+                <h3 class="highlight-white" style="font-size: 2rem; margin-bottom: 1.5rem;">Version <span class="js-version">1.1</span> is now available.</h3>
                 
                 <div style="background: rgba(255, 55, 95, 0.1); border-left: 4px solid #ff375f; padding: 1rem 1.5rem; border-radius: 0 8px 8px 0; margin-bottom: 2rem;">
                     <h4 style="color: #ff375f; margin-bottom: 5px; font-size: 1.2rem;"><i class="fa-solid fa-triangle-exclamation"></i> Action Required</h4>
@@ -366,14 +366,14 @@
 
                 <!-- REPLACE THE HREF WITH YOUR ICLOUD LINK -->
                 <a href="https://www.icloud.com/shortcuts/YOUR_SHORTCUT_LINK_HERE" target="_blank" class="primary-btn">
-                    <i class="fa-brands fa-apple"></i> Download to macOS
+                    <i class="fa-brands fa-apple"></i> Download v<span class="js-version">1.1</span> for macOS
                 </a>
             </div>
             
             <div class="fade-up delay-2">
                 <div class="card-panel">
                     <h3 class="highlight-white" style="margin-bottom: 20px; font-size: 1.8rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
-                        <i class="fa-solid fa-clock-rotate-left"></i> Changelog (v1.1)
+                        <i class="fa-solid fa-clock-rotate-left"></i> Changelog (v<span class="js-version">1.1</span>)
                     </h3>
                     <ul class="changelog-list" style="list-style-type: none; font-size: 1.1rem; color: #86868b; line-height: 1.6;">
                         <li><i class="fa-solid fa-check text-gradient-blue"></i> 
@@ -561,28 +561,47 @@
         </div>
     </div>
 
-    <!-- Script to handle Scroll Animations -->
+    <!-- Scroll & Version Sync Scripts -->
     <script>
         document.addEventListener("DOMContentLoaded", () => {
+            // 1. VERSION SYNC LOGIC
+            // Fetches version.txt from the root and updates all .js-version elements
+            const syncVersion = async () => {
+                try {
+                    const response = await fetch('/version.txt');
+                    if (response.ok) {
+                        const version = await response.text();
+                        const sanitizedVersion = version.trim();
+                        if (sanitizedVersion) {
+                            document.querySelectorAll('.js-version').forEach(el => {
+                                el.textContent = sanitizedVersion;
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error("Version sync failed:", error);
+                }
+            };
+            syncVersion();
+
+            // 2. SCROLL ANIMATION LOGIC
             const observerOptions = {
                 root: null,
                 rootMargin: '0px',
-                threshold: 0.2 // Trigger when 20% of the element is visible
+                threshold: 0.2
             };
 
-            const observer = new IntersectionObserver((entries, observer) => {
+            const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add('visible');
                     } else {
-                        // Optional: remove 'visible' if you want animations to repeat when scrolling back up
                         entry.target.classList.remove('visible'); 
                     }
                 });
             }, observerOptions);
 
-            const fadeElements = document.querySelectorAll('.fade-up');
-            fadeElements.forEach(el => observer.observe(el));
+            document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
         });
     </script>
 </body>
