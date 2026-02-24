@@ -118,7 +118,7 @@
         }
 
         /* ==========================================================================
-           4. UI COMPONENTS (SOLID DARK CARDS)
+           4. UI COMPONENTS & BUTTONS
            ========================================================================== */
         .card-panel {
             background: var(--card-bg);
@@ -126,11 +126,13 @@
             padding: 2.5rem;
             text-align: left;
             transition: transform 0.3s ease, background 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .card-panel:hover {
             transform: translateY(-5px);
             background: #161618;
+            border-color: rgba(255, 255, 255, 0.1);
         }
 
         .grid-cards {
@@ -144,6 +146,52 @@
             font-size: 3.5rem;
             margin-bottom: 1.5rem;
             color: var(--accent-blue);
+        }
+
+        /* Buttons */
+        .fixed-download-btn {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 500;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .fixed-download-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        .primary-btn {
+            display: inline-block;
+            background: var(--text-primary);
+            color: var(--bg-color);
+            padding: 1rem 2.5rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 30px;
+            text-decoration: none;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+            margin-top: 2rem;
+        }
+
+        .primary-btn:hover {
+            transform: scale(1.05);
+            background: var(--accent-blue);
+            color: white;
+            box-shadow: 0 10px 30px rgba(41, 151, 255, 0.3);
         }
 
         /* Ambient Glow Backgrounds */
@@ -168,7 +216,6 @@
            5. SPECIFIC SLIDE DESIGNS
            ========================================================================== */
         
-        /* Slide 3: How it works (Steps) */
         .steps-container {
             display: flex;
             justify-content: space-between;
@@ -189,7 +236,6 @@
             font-variant-numeric: tabular-nums;
         }
 
-        /* Slide 5 & 7: Global Layout */
         .two-col {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -205,10 +251,10 @@
             text-shadow: 0 0 40px rgba(41, 151, 255, 0.2);
         }
 
-        /* Slide 7: Personalization Mockup */
         .mac-menu-mockup {
             background: rgba(25, 25, 25, 0.9);
             backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
             border: 1px solid rgba(255,255,255,0.05);
             border-radius: 12px;
             width: 100%;
@@ -242,11 +288,22 @@
             color: #fff;
         }
 
-        /* Slide 8: Mic Drop */
         .mic-drop {
             font-size: clamp(4rem, 8vw, 7rem);
             line-height: 1.1;
             text-align: center;
+        }
+
+        /* Changelog List */
+        .changelog-list li {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .changelog-list i {
+            margin-top: 5px;
+            font-size: 0.9rem;
         }
 
         /* ==========================================================================
@@ -274,10 +331,14 @@
                 grid-template-columns: 1fr;
             }
             .slide-container { padding: 10% 5%; }
+            .fixed-download-btn { top: 1rem; right: 1rem; font-size: 0.9rem; padding: 0.6rem 1rem;}
         }
     </style>
 </head>
 <body>
+
+    <!-- Fixed Global Download Button -->
+    <a href="#download" class="fixed-download-btn"><i class="fa-solid fa-cloud-arrow-down"></i> Get v1.1</a>
 
     <!-- Ambient Background Glows -->
     <div class="ambient-glow glow-1"></div>
@@ -291,7 +352,46 @@
         </div>
     </div>
 
-    <!-- Slide 2: What is it? (Updated to match exact screenshot layout) -->
+    <!-- Slide 2: DOWNLOAD & CHANGELOG (Moved directly below Title Slide) -->
+    <div id="download" class="slide-container">
+        <div class="content-wrapper two-col">
+            <div class="fade-up">
+                <h2 class="section-title text-gradient-silver" style="text-align: left; margin-bottom: 1rem;">Get Omni Search</h2>
+                <h3 class="highlight-white" style="font-size: 2rem; margin-bottom: 1.5rem;">Version 1.1 is now available.</h3>
+                
+                <div style="background: rgba(255, 55, 95, 0.1); border-left: 4px solid #ff375f; padding: 1rem 1.5rem; border-radius: 0 8px 8px 0; margin-bottom: 2rem;">
+                    <h4 style="color: #ff375f; margin-bottom: 5px; font-size: 1.2rem;"><i class="fa-solid fa-triangle-exclamation"></i> Action Required</h4>
+                    <p style="font-size: 1.1rem; color: #e5e5ea; line-height: 1.4;">Before installing, please delete your existing "Omni Search" shortcut from the Shortcuts app to prevent duplicates.</p>
+                </div>
+
+                <!-- REPLACE THE HREF WITH YOUR ICLOUD LINK -->
+                <a href="https://www.icloud.com/shortcuts/YOUR_SHORTCUT_LINK_HERE" target="_blank" class="primary-btn">
+                    <i class="fa-brands fa-apple"></i> Download to macOS
+                </a>
+            </div>
+            
+            <div class="fade-up delay-2">
+                <div class="card-panel">
+                    <h3 class="highlight-white" style="margin-bottom: 20px; font-size: 1.8rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Changelog (v1.1)
+                    </h3>
+                    <ul class="changelog-list" style="list-style-type: none; font-size: 1.1rem; color: #86868b; line-height: 1.6;">
+                        <li><i class="fa-solid fa-check text-gradient-blue"></i> 
+                            <div><strong style="color: white;">Auto-Updater:</strong> Added a silent background checker to notify you of new versions seamlessly.</div>
+                        </li>
+                        <li><i class="fa-solid fa-check text-gradient-blue"></i> 
+                            <div><strong style="color: white;">WAF Bypass:</strong> Advanced URL sanitization to securely bypass strict enterprise firewalls (e.g., Marketing Tools 403 errors).</div>
+                        </li>
+                        <li><i class="fa-solid fa-check text-gradient-blue"></i> 
+                            <div><strong style="color: white;">Session Hardening:</strong> Upgraded AppleScript PID tracking to perfectly handle Safari restarts without losing the search window.</div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 3: What is it? -->
     <div class="slide-container">
         <div class="content-wrapper">
             <div class="fade-up" style="text-align: left; margin-bottom: 4rem;">
@@ -318,7 +418,7 @@
         </div>
     </div>
 
-    <!-- Slide 3: How does it work? -->
+    <!-- Slide 4: How does it work? -->
     <div class="slide-container">
         <div class="content-wrapper">
             <h2 class="section-title fade-up text-gradient-silver">How does it work?</h2>
@@ -342,7 +442,7 @@
         </div>
     </div>
 
-    <!-- Slide 4: Why do we need it? -->
+    <!-- Slide 5: Why do we need it? -->
     <div class="slide-container">
         <div class="content-wrapper">
             <h2 class="section-title fade-up text-gradient-silver">Why do we need it?</h2>
@@ -371,7 +471,7 @@
         </div>
     </div>
 
-    <!-- Slide 5: Global Adoption -->
+    <!-- Slide 6: Global Adoption -->
     <div class="slide-container">
         <div class="content-wrapper two-col">
             <div class="fade-up">
@@ -395,7 +495,7 @@
         </div>
     </div>
 
-    <!-- Slide 6: Time in Motion Study (NEW) -->
+    <!-- Slide 7: Time in Motion Study -->
     <div class="slide-container title-slide">
         <div class="content-wrapper">
             <h1 class="fade-up text-gradient-silver" style="font-size: clamp(3rem, 7vw, 6rem);">Time in Motion Study</h1>
@@ -403,11 +503,10 @@
         </div>
     </div>
 
-    <!-- Slide 7: Infinite Personalization -->
+    <!-- Slide 8: Infinite Personalization -->
     <div class="slide-container">
         <div class="content-wrapper two-col">
             <div class="fade-up delay-2">
-                <!-- CSS UI Mockup of the Tool -->
                 <div class="mac-menu-mockup">
                     <div class="mac-menu-header">
                         <i class="fa-solid fa-magnifying-glass"></i> <span style="font-weight: 600;">Omni Search</span>
@@ -452,7 +551,7 @@
         </div>
     </div>
 
-    <!-- Slide 8: Mic Drop -->
+    <!-- Slide 9: Mic Drop -->
     <div class="slide-container title-slide">
         <div class="content-wrapper">
             <h1 class="mic-drop text-gradient-silver fade-up">Fluid.</h1>
