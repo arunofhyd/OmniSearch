@@ -14,12 +14,12 @@ This script includes all the safety features of the standard version but adds an
 on run {input, parameters}
 	-- Retrieve the target URL passed from the macOS Shortcuts input
 	set targetURL to (item 1 of input) as string
-
+	
 	-- CONFIGURATION:
 	-- Set to 'true' to always bring the search window to the front.
 	-- Set to 'false' to update the tab in the background (if the window is already open).
 	set alwaysFocus to true
-
+	
 	-- ==========================================
 	-- CONFIGURATION & UPDATE SETTINGS
 	-- Set updateFrequency to:
@@ -30,18 +30,18 @@ on run {input, parameters}
 	set updateFrequency to "always"
 	set currentVersion to 1.0
 	-- ==========================================
-
+	
 	-- AUTOMATIC UPDATE CHECKER LOGIC
 	-- This block handles silent background version checks against the Netlify-hosted version.txt
 	set dateCache to "/tmp/omnisearch_lastcheck.txt"
 	set todayDate to (current date)
 	set todayDateString to short date string of todayDate
-
+	
 	-- Retrieve ISO week identifier using shell for "weekly" frequency support
 	set weekIdentifier to do shell script "date +%G-W%V"
-
+	
 	set shouldCheck to false
-
+	
 	if updateFrequency is "always" then
 		set shouldCheck to true
 	else
@@ -56,12 +56,12 @@ on run {input, parameters}
 			set shouldCheck to true
 		end try
 	end if
-
+	
 	if shouldCheck then
 		try
 			-- Pinging the server with a 2-second timeout for better reliability
 			set remoteVersionString to do shell script "curl -s --max-time 2 https://omniisearch.netlify.app/version.txt"
-
+			
 			if remoteVersionString is not "" then
 				-- Handle decimal points safely across different system locales
 				set oldDelims to AppleScript's text item delimiters
@@ -70,15 +70,15 @@ on run {input, parameters}
 				set AppleScript's text item delimiters to (character 2 of (0.5 as string))
 				set localizedRemoteVersionString to remotePieces as string
 				set AppleScript's text item delimiters to oldDelims
-
+				
 				set remoteVersion to localizedRemoteVersionString as real
-
+				
 				-- Compare versions
 				if remoteVersion > currentVersion then
 					-- Force the dialog to the absolute frontmost layer
 					tell application (path to frontmost application as text)
 						set dialogResult to display dialog "A new version of Omni Search (v" & remoteVersionString & ") is available!" & return & return & "You are currently running v" & currentVersion & ". Would you like to download the update?" with title "Omni Search Update" buttons {"Skip for now", "Open Website"} default button "Open Website"
-
+						
 						if button returned of dialogResult is "Open Website" then
 							tell application "Safari"
 								if (count of windows) is 0 then
@@ -92,7 +92,7 @@ on run {input, parameters}
 						end if
 					end tell
 				end if
-
+				
 				-- Update cache signature based on current frequency
 				if updateFrequency is "daily" then
 					do shell script "echo " & quoted form of todayDateString & " > " & quoted form of dateCache
@@ -105,7 +105,7 @@ on run {input, parameters}
 		end try
 	end if
 	-- ==========================================
-
+	
 	-- ==========================================
 	-- URL SANITIZATION & WAF COMPLIANCE
 	-- This block sanitizes all space variations into strict form-encoded spaces ("+") required by Apple Marketing Tools to bypass enterprise Web Application Firewalls (WAF) and prevent 403 errors, while leaving other domains untouched.
@@ -120,11 +120,11 @@ on run {input, parameters}
 		set AppleScript's text item delimiters to oldDelims
 	end if
 	-- ==========================================
-
+	
 	-- Define the path for the temporary cache file used to persist the dedicated window ID
 	set cacheFile to "/tmp/omnisearch_id.txt"
 	set foundWindow to false
-
+	
 	-- PRE-FETCH CACHE DATA
 	set storedPID to ""
 	set storedID to 0
@@ -138,15 +138,24 @@ on run {input, parameters}
 	on error
 		-- Proceed with defaults
 	end try
-
+	
 	-- STEP 1: PROCESS ID TRACKING
-	-- Activate Safari and retrieve its unique Process ID (PID) for the current session.
-	tell application "Safari" to activate
-
+	-- Check if Safari is running first.
+	set safariRunning to false
+	tell application "System Events"
+		if exists process "Safari" then set safariRunning to true
+	end tell
+	
+	-- If Safari is NOT running, we MUST activate it.
+	-- If alwaysFocus is TRUE, we WANT to activate it immediately.
+	if (safariRunning is false) or (alwaysFocus is true) then
+		tell application "Safari" to activate
+	end if
+	
 	tell application "System Events"
 		set currentPID to unix id of process "Safari" as text
 	end tell
-
+	
 	tell application "Safari"
 		-- STEP 2: WINDOW VALIDATION & ROUTING
 		if (storedPID is equal to currentPID) then
@@ -154,7 +163,7 @@ on run {input, parameters}
 				if exists window id storedID then
 					tell window id storedID
 						set foundWindow to true
-
+						
 						-- ISOLATED TAB ROUTING
 						if (count of tabs) > 0 then
 							set URL of tab 1 to targetURL
@@ -162,7 +171,7 @@ on run {input, parameters}
 						else
 							make new tab at end of tabs with properties {URL:targetURL}
 						end if
-
+						
 						if alwaysFocus is true then
 							set visible to true
 							set minimized to false
@@ -174,12 +183,12 @@ on run {input, parameters}
 				set foundWindow to false
 			end try
 		end if
-
+		
 		-- STEP 3: WINDOW INSTANTIATION
 		if not foundWindow then
 			set initialWindowCount to count of windows
 			make new document with properties {URL:targetURL}
-
+			
 			-- RACE CONDITION PREVENTION
 			set timeoutCounter to 0
 			repeat while (count of windows) is initialWindowCount
@@ -187,9 +196,9 @@ on run {input, parameters}
 				set timeoutCounter to timeoutCounter + 1
 				if timeoutCounter > 15 then exit repeat
 			end repeat
-
+			
 			delay 0.1
-
+			
 			try
 				-- Targeting window 1 specifically for bounds settings
 				set bounds of window 1 to {1120, 25, 2240, 1260}
@@ -198,7 +207,7 @@ on run {input, parameters}
 			end try
 		end if
 	end tell
-
+	
 	-- STEP 4: AGGRESSIVE FOCUS STEALING
 	-- Performed outside the Safari block to ensure system-level command priority
 	if alwaysFocus is true then
@@ -213,7 +222,7 @@ on run {input, parameters}
 		end tell
 		tell application "Safari" to activate
 	end if
-
+	
 	return input
 end run
 ```
