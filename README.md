@@ -41,7 +41,7 @@ Omni Search is a powerful, native macOS Shortcut utility designed to eliminate t
 ### Download
 | Version | Description | Link |
 | :--- | :--- | :--- |
-| **v1.1** | **Latest Release.** Includes Auto-Updater & WAF Bypass. | [Download v1.1](https://www.icloud.com/shortcuts/a53464847eeb44cdab635437752a9f80) |
+| **v1.1** | **Latest Release.** Includes Auto-Updater & WAF Bypass. | [Download v1.1](https://www.icloud.com/shortcuts/3ccc02a9c79049bd8aa711228f5b5714) |
 | **v1.0** | **Stable Release.** Core functionality only. Manual updates. | [Download v1.0](https://www.icloud.com/shortcuts/81f60aa121da4f99942250aef878808c) |
 
 ### Setup
@@ -63,10 +63,6 @@ Omni Search is a powerful, native macOS Shortcut utility designed to eliminate t
 *Note: If no text is selected, it can be configured to prompt for input.*
 
 ---
-
-## Customization
-
-Omni Search is designed to be hacked. You can modify the "Dictionary" object within the Shortcut to add your own search engines.
 
 ## Technical Details
 
