@@ -38,12 +38,6 @@ Omni Search is a powerful, native macOS Shortcut utility designed to eliminate t
 - Safari (Default Browser).
 - "Allow Running Scripts" enabled in Shortcuts preferences.
 
-### Download
-| Version | Description | Link |
-| :--- | :--- | :--- |
-| **v1.1** | **Latest Release.** Includes Auto-Updater & WAF Bypass. | [Download v1.1](https://www.icloud.com/shortcuts/3ccc02a9c79049bd8aa711228f5b5714) |
-| **v1.0** | **Stable Release.** Core functionality only. Manual updates. | [Download v1.0](https://www.icloud.com/shortcuts/81f60aa121da4f99942250aef878808c) |
-
 ### Setup
 1.  **Install the Shortcut**: Click one of the links above to add Omni Search to your Shortcuts app.
 2.  **Assign a Hotkey**:
