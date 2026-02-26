@@ -86,7 +86,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 5% 10%;
+            padding: 5% 0; /* Reduced side padding for carousel full-bleed feel */
             position: relative;
             scroll-snap-align: start;
             overflow: hidden;
@@ -96,6 +96,7 @@
             max-width: 1400px;
             width: 100%;
             z-index: 10;
+            padding: 0 5%; /* Restore padding for inner content */
         }
 
         .title-slide {
@@ -174,46 +175,6 @@
             transform: scale(1.05);
         }
 
-        .primary-btn {
-            display: inline-block;
-            background: var(--text-primary);
-            color: var(--bg-color);
-            padding: 1rem 2.5rem;
-            font-size: 1.2rem;
-            font-weight: 600;
-            border-radius: 30px;
-            text-decoration: none;
-            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
-            margin-top: 2rem;
-        }
-
-        .primary-btn:hover {
-            transform: scale(1.05);
-            background: var(--accent-blue);
-            color: white;
-            box-shadow: 0 10px 30px rgba(41, 151, 255, 0.3);
-        }
-
-        .secondary-btn {
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: var(--text-secondary);
-            padding: 0.8rem 2rem;
-            font-size: 1rem;
-            font-weight: 500;
-            border-radius: 30px;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            margin-top: 1rem;
-        }
-
-        .secondary-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            transform: translateY(-2px);
-        }
-
         /* Ambient Glow Backgrounds */
         .ambient-glow {
             position: absolute;
@@ -233,7 +194,174 @@
         }
 
         /* ==========================================================================
-           5. SPECIFIC SLIDE DESIGNS
+           5. CAROUSEL & CARDS (NEW)
+           ========================================================================== */
+
+        .version-carousel-wrapper {
+            width: 100vw;
+            overflow: hidden; /* Hide overflow from wrapper */
+            padding: 2rem 0;
+            /* Center the starting point visually on desktop, or just rely on flex */
+        }
+
+        .version-carousel {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            gap: 2rem;
+            padding: 0 5vw; /* Left/Right padding for snap alignment */
+            width: 100%;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            justify-content: flex-start; /* Start align */
+        }
+
+        /* Center content if few items on desktop */
+        @media (min-width: 1024px) {
+            .version-carousel {
+                justify-content: center;
+            }
+        }
+
+        .version-carousel::-webkit-scrollbar {
+            display: none;
+        }
+
+        .version-card {
+            flex: 0 0 350px;
+            scroll-snap-align: center;
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+            height: 550px;
+            position: relative;
+        }
+
+        .version-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .version-card.latest {
+            border: 1px solid rgba(41, 151, 255, 0.5);
+            box-shadow: 0 0 40px rgba(41, 151, 255, 0.15);
+            background: linear-gradient(180deg, rgba(20, 20, 25, 0.9) 0%, rgba(10, 10, 12, 0.9) 100%);
+        }
+
+        .version-badge {
+            display: inline-block;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1.5rem;
+            align-self: flex-start;
+        }
+
+        .badge-latest {
+            background: rgba(41, 151, 255, 0.2);
+            color: var(--accent-blue);
+            border: 1px solid rgba(41, 151, 255, 0.3);
+            box-shadow: 0 0 10px rgba(41, 151, 255, 0.2);
+        }
+
+        .badge-stable {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card-header h3 {
+            font-size: 3rem;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-header p {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+
+        .card-body {
+            flex-grow: 1;
+            margin-bottom: 2rem;
+            overflow-y: auto;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+            color: #d1d1d6;
+            line-height: 1.5;
+        }
+
+        .feature-icon {
+            color: var(--accent-blue);
+            font-size: 1rem;
+            margin-top: 3px;
+        }
+
+        .feature-icon.secondary {
+            color: var(--text-secondary);
+        }
+
+        .download-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 1rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: white;
+            color: black;
+            box-shadow: 0 4px 20px rgba(255, 255, 255, 0.2);
+        }
+        .btn-primary:hover {
+            background: var(--accent-blue);
+            color: white;
+            box-shadow: 0 4px 30px rgba(41, 151, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+
+        /* ==========================================================================
+           6. OTHER SLIDE DESIGNS (Existing)
            ========================================================================== */
         
         .steps-container {
@@ -314,20 +442,8 @@
             text-align: center;
         }
 
-        /* Changelog List */
-        .changelog-list li {
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-        }
-        .changelog-list i {
-            margin-top: 5px;
-            font-size: 0.9rem;
-        }
-
         /* ==========================================================================
-           6. ANIMATIONS
+           7. ANIMATIONS
            ========================================================================== */
         .fade-up {
             opacity: 0;
@@ -350,15 +466,17 @@
                 flex-direction: column;
                 grid-template-columns: 1fr;
             }
-            .slide-container { padding: 10% 5%; }
+            .slide-container { padding: 10% 0; }
             .fixed-download-btn { top: 1rem; right: 1rem; font-size: 0.9rem; padding: 0.6rem 1rem;}
+            .version-card { flex: 0 0 85vw; height: auto; min-height: 450px;} /* Mobile card width */
+            .version-carousel { justify-content: flex-start; padding: 0 7.5vw; }
         }
     </style>
 </head>
 <body>
 
     <!-- Fixed Global Download Button -->
-    <a href="#download" class="fixed-download-btn"><i class="fa-solid fa-cloud-arrow-down"></i> Get <span class="js-version-latest">1.1</span></a>
+    <a href="#download" class="fixed-download-btn"><i class="fa-solid fa-cloud-arrow-down"></i> Get <span class="js-latest-version-display">Latest</span></a>
 
     <!-- Ambient Background Glows -->
     <div class="ambient-glow glow-1"></div>
@@ -366,80 +484,20 @@
 
     <!-- Slide 1: Title -->
     <div class="slide-container title-slide">
-        <div class="content-wrapper">
+        <div class="content-wrapper" style="padding: 0 5%;">
             <h1 class="fade-up text-gradient-silver">Omni Search</h1>
             <p class="fade-up delay-1 text-gradient-blue">Search at the speed of thought.</p>
         </div>
     </div>
 
-    <!-- Slide 2: DOWNLOAD & CHANGELOG -->
+    <!-- Slide 2: VERSION CAROUSEL (Refactored) -->
     <div id="download" class="slide-container">
-        <div class="content-wrapper two-col">
-            <!-- Left Column: Downloads -->
-            <div class="fade-up">
-                <h2 class="section-title text-gradient-silver" style="text-align: left; margin-bottom: 1rem;">Get Omni Search</h2>
-                
-                <!-- Latest Version Block -->
-                <div style="margin-bottom: 3rem;">
-                    <h3 class="highlight-white" style="font-size: 2rem; margin-bottom: 1rem;">Version <span class="js-version-latest">1.1</span> (Latest)</h3>
-
-                    <div style="background: rgba(255, 55, 95, 0.1); border-left: 4px solid #ff375f; padding: 1rem 1.5rem; border-radius: 0 8px 8px 0; margin-bottom: 2rem;">
-                        <h4 style="color: #ff375f; margin-bottom: 5px; font-size: 1.2rem;"><i class="fa-solid fa-triangle-exclamation"></i> Action Required</h4>
-                        <p style="font-size: 1.1rem; color: #e5e5ea; line-height: 1.4;">Before installing, please delete your existing "Omni Search" shortcut to prevent duplicates.</p>
-                    </div>
-
-                    <a href="#" target="_blank" class="primary-btn js-link-latest">
-                        <i class="fa-brands fa-apple"></i> Download v<span class="js-version-latest">1.1</span>
-                    </a>
-                </div>
-
-                <!-- Older Version Block -->
-                <div style="padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1);">
-                    <h4 class="highlight-white" style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #86868b;">Previous Version</h4>
-                    <p style="font-size: 1rem; margin-bottom: 1rem;">Version <span class="js-version-old">1.0</span> (No Auto-Updater)</p>
-                    <a href="#" target="_blank" class="secondary-btn js-link-old">
-                        <i class="fa-solid fa-download"></i> Get v<span class="js-version-old">1.0</span>
-                    </a>
-                </div>
-            </div>
+        <div class="version-carousel-wrapper">
+            <h2 class="section-title fade-up text-gradient-silver" style="margin-bottom: 2rem;">Select Your Version</h2>
             
-            <!-- Right Column: Changelogs -->
-            <div class="fade-up delay-2">
-                <!-- v1.1 Changelog -->
-                <div class="card-panel" style="margin-bottom: 2rem;">
-                    <h3 class="highlight-white" style="margin-bottom: 20px; font-size: 1.8rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
-                        <i class="fa-solid fa-clock-rotate-left"></i> Changelog (v<span class="js-version-latest">1.1</span>)
-                    </h3>
-                    <ul class="changelog-list" style="list-style-type: none; font-size: 1.1rem; color: #86868b; line-height: 1.6;">
-                        <li><i class="fa-solid fa-check text-gradient-blue"></i> 
-                            <div><strong style="color: white;">Auto-Updater:</strong> Added a silent background checker to notify you of new versions seamlessly.</div>
-                        </li>
-                        <li><i class="fa-solid fa-check text-gradient-blue"></i> 
-                            <div><strong style="color: white;">WAF Bypass:</strong> Advanced URL sanitization to securely bypass strict enterprise firewalls (e.g., Marketing Tools 403 errors).</div>
-                        </li>
-                        <li><i class="fa-solid fa-check text-gradient-blue"></i> 
-                            <div><strong style="color: white;">Session Hardening:</strong> Upgraded AppleScript PID tracking to perfectly handle Safari restarts without losing the search window.</div>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- v1.0 Changelog -->
-                <div class="card-panel" style="opacity: 0.7; transform: scale(0.98);">
-                    <h3 class="highlight-white" style="margin-bottom: 20px; font-size: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; color: #86868b;">
-                        <i class="fa-solid fa-history"></i> Changelog (v<span class="js-version-old">1.0</span>)
-                    </h3>
-                    <ul class="changelog-list" style="list-style-type: none; font-size: 1rem; color: #86868b; line-height: 1.6;">
-                        <li><i class="fa-solid fa-check text-gradient-silver"></i>
-                            <div><strong style="color: #ddd;">Initial Release:</strong> The original Omni Search experience.</div>
-                        </li>
-                        <li><i class="fa-solid fa-check text-gradient-silver"></i>
-                            <div><strong style="color: #ddd;">Core Features:</strong> Native utility, customizable routing, zero friction search.</div>
-                        </li>
-                        <li><i class="fa-solid fa-minus" style="color: #555;"></i>
-                            <div><em style="color: #666;">No Auto-Updater included.</em></div>
-                        </li>
-                    </ul>
-                </div>
+            <!-- CAROUSEL -->
+            <div class="version-carousel fade-up delay-1" id="version-carousel">
+                <!-- Javascript will inject cards here -->
             </div>
         </div>
     </div>
@@ -550,7 +608,7 @@
 
     <!-- Slide 7: Time in Motion Study -->
     <div class="slide-container title-slide">
-        <div class="content-wrapper">
+        <div class="content-wrapper" style="padding: 0 5%;">
             <h1 class="fade-up text-gradient-silver" style="font-size: clamp(3rem, 7vw, 6rem);">Time in Motion Study</h1>
             <p class="fade-up delay-1 text-gradient-blue">Measuring the impact of absolute efficiency.</p>
         </div>
@@ -606,7 +664,7 @@
 
     <!-- Slide 9: Mic Drop -->
     <div class="slide-container title-slide">
-        <div class="content-wrapper">
+        <div class="content-wrapper" style="padding: 0 5%;">
             <h1 class="mic-drop text-gradient-silver fade-up">Fluid.</h1>
             <h1 class="mic-drop text-gradient-blue fade-up delay-1">Inclusive.</h1>
             <h1 class="mic-drop text-gradient-purple fade-up delay-2">Native.</h1>
@@ -617,41 +675,104 @@
     <!-- Scroll & Version Sync Scripts -->
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            // 1. VERSION SYNC LOGIC
-            // Fetches version.txt from the root and updates all elements
+
+            // --- DATA FOR CHANGELOGS ---
+            const changelogData = {
+                "1.1": {
+                    subtitle: "Auto-Updating & Secure",
+                    features: [
+                        { icon: "fa-sync", text: "<strong>Auto-Updater:</strong> Silent background checks keep you updated seamlessly." },
+                        { icon: "fa-shield-halved", text: "<strong>WAF Bypass:</strong> Advanced URL sanitization for enterprise firewalls." },
+                        { icon: "fa-window-restore", text: "<strong>Session Hardening:</strong> Perfect PID tracking for Safari restarts." }
+                    ]
+                },
+                "1.0": {
+                    subtitle: "Standard Release",
+                    features: [
+                        { icon: "fa-cube", text: "<strong>Core Foundation:</strong> The original Omni Search native experience.", secondary: true },
+                        { icon: "fa-bolt", text: "<strong>Zero Friction:</strong> Instant routing without context switching.", secondary: true },
+                        { icon: "fa-circle-info", text: "<em>Manual updates only.</em>", secondary: true }
+                    ]
+                }
+            };
+
+            const defaultFeatures = [
+                { icon: "fa-star", text: "<strong>New Release:</strong> Performance improvements and bug fixes." },
+                { icon: "fa-code-commit", text: "Check documentation for full details." }
+            ];
+
+            // --- VERSION SYNC LOGIC ---
             const syncVersion = async () => {
                 try {
                     const response = await fetch('/version.txt');
                     if (response.ok) {
                         const text = await response.text();
                         const lines = text.split('\n').filter(line => line.trim() !== '');
+                        const carousel = document.getElementById('version-carousel');
 
-                        // Parse Latest Version (Line 1)
+                        // Clear existing (though it's empty)
+                        carousel.innerHTML = '';
+
+                        // Update global "Latest" badge if available
                         if (lines.length > 0) {
-                            const line0 = lines[0];
-                            // Split only on the first hyphen to allow hyphens in links?
-                            // The format is "VER - LINK".
-                            // Regex is safer.
-                            const match0 = line0.match(/^([^\s]+)\s+-\s+(.+)$/);
-                            if (match0) {
-                                const ver = match0[1];
-                                const link = match0[2];
-                                document.querySelectorAll('.js-version-latest').forEach(el => el.textContent = ver);
-                                document.querySelectorAll('.js-link-latest').forEach(el => el.href = link);
+                            const match = lines[0].match(/^([^\s]+)/);
+                            if (match) {
+                                document.querySelectorAll('.js-latest-version-display').forEach(el => el.textContent = match[1]);
                             }
                         }
 
-                        // Parse Older Version (Line 2)
-                        if (lines.length > 1) {
-                            const line1 = lines[1];
-                            const match1 = line1.match(/^([^\s]+)\s+-\s+(.+)$/);
-                            if (match1) {
-                                const ver = match1[1];
-                                const link = match1[2];
-                                document.querySelectorAll('.js-version-old').forEach(el => el.textContent = ver);
-                                document.querySelectorAll('.js-link-old').forEach(el => el.href = link);
-                            }
-                        }
+                        // Render Cards
+                        lines.forEach((line, index) => {
+                            const match = line.match(/^([^\s]+)\s+-\s+(.+)$/);
+                            if (!match) return;
+
+                            const ver = match[1];
+                            const link = match[2];
+                            const isLatest = (index === 0);
+
+                            // Get data or fallback
+                            const data = changelogData[ver] || { subtitle: "New Update", features: defaultFeatures };
+
+                            // Build Features HTML
+                            const featuresHtml = data.features.map(f => `
+                                <li class="feature-item">
+                                    <i class="fa-solid ${f.icon} feature-icon ${f.secondary ? 'secondary' : ''}"></i>
+                                    <div>${f.text}</div>
+                                </li>
+                            `).join('');
+
+                            // Build Badge
+                            const badgeClass = isLatest ? 'badge-latest' : 'badge-stable';
+                            const badgeText = isLatest ? 'Latest Release' : 'Stable Release';
+
+                            // Build Button
+                            const btnClass = isLatest ? 'btn-primary' : 'btn-secondary';
+                            const btnIcon = isLatest ? 'fa-brands fa-apple' : 'fa-download';
+                            const btnText = isLatest ? `Download v${ver}` : `Get v${ver}`;
+
+                            // Create Element
+                            const card = document.createElement('div');
+                            card.className = `version-card ${isLatest ? 'latest' : ''}`;
+                            card.innerHTML = `
+                                <div class="card-header">
+                                    <span class="version-badge ${badgeClass}">${badgeText}</span>
+                                    <h3>v${ver}</h3>
+                                    <p>${data.subtitle}</p>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="feature-list">
+                                        ${featuresHtml}
+                                    </ul>
+                                </div>
+                                <div class="card-footer">
+                                    <a href="${link}" target="_blank" class="download-btn ${btnClass}">
+                                        <i class="${btnIcon}"></i> ${btnText}
+                                    </a>
+                                </div>
+                            `;
+
+                            carousel.appendChild(card);
+                        });
                     }
                 } catch (error) {
                     console.error("Version sync failed:", error);
@@ -659,7 +780,7 @@
             };
             syncVersion();
 
-            // 2. SCROLL ANIMATION LOGIC
+            // --- SCROLL ANIMATION LOGIC ---
             const observerOptions = {
                 root: null,
                 rootMargin: '0px',
@@ -671,7 +792,8 @@
                     if (entry.isIntersecting) {
                         entry.target.classList.add('visible');
                     } else {
-                        entry.target.classList.remove('visible'); 
+                        // Optional: remove visible to replay animation
+                        // entry.target.classList.remove('visible');
                     }
                 });
             }, observerOptions);
