@@ -12,7 +12,7 @@ This is the recommended, permission-free script currently in use. It includes UR
 
 ```applescript
 on run {input, parameters}
-	-- 1. GET THE LINK:
+	-- 1. GET THE LINK: 
 	-- This takes the web address sent from your macOS Shortcut.
 	set targetURL to (item 1 of input) as string
 	
@@ -21,16 +21,16 @@ on run {input, parameters}
 	-- ==========================================
 	-- Choose your size: "fullscreen", "left", "right", "top", "bottom", "center", or "custom"
 	set windowSize to "fullscreen"
-
+	
 	-- If you chose "custom" above, set your numbers here {Left, Top, Right, Bottom}:
 	set customBounds to {100, 100, 1200, 800}
-
+	
 	-- Set to 'true' to bring Safari to front, 'false' to update in background
 	set alwaysFocus to true
 	-- ==========================================
-
+	
 	-- 3. CLEAN THE LINK:
-	-- Some Apple links break if they have spaces. This swaps spaces for "+"
+	-- Some Apple links break if they have spaces. This swaps spaces for "+" 
 	-- so the website doesn't block the request.
 	if targetURL contains "marketingtools.apple.com" then
 		set oldDelims to AppleScript's text item delimiters
@@ -47,7 +47,7 @@ on run {input, parameters}
 	set foundWindow to false
 	set storedPID to ""
 	set storedID to 0
-
+	
 	try
 		set cachedData to do shell script "cat " & quoted form of cacheFile
 		set oldDelims to AppleScript's text item delimiters
@@ -120,7 +120,7 @@ on run {input, parameters}
 			try
 				-- Ask the Mac how big the screen is to calculate the position.
 				tell application "Finder" to set {dL, dT, dR, dB} to bounds of window of desktop
-
+				
 				if windowSize is "left" then
 					set bounds of window 1 to {0, 25, dR / 2, dB}
 				else if windowSize is "right" then
@@ -136,7 +136,7 @@ on run {input, parameters}
 				else -- Default to Fullscreen
 					set bounds of window 1 to {0, 25, dR, dB}
 				end if
-
+				
 				-- Save this window's identity so we can find it next time.
 				set newID to (get id of window 1)
 				do shell script "echo " & quoted form of (currentPID & "," & (newID as string)) & " > " & quoted form of cacheFile
