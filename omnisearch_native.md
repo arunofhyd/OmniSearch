@@ -22,7 +22,7 @@ on run {input, parameters}
 	-- Choose your size: "fullscreen", "left", "right", "top", "bottom", "center", or "custom"
 	set windowSize to "fullscreen"
 	
-	-- If you chose "custom" above, set your numbers here {Left, Top, Right, Bottom}:
+	-- If you chose "custom" above, set your window coordinates here {Left, Top, Right, Bottom}:
 	set customBounds to {100, 100, 1200, 800}
 	
 	-- Set to 'true' to bring Safari to front, 'false' to update in background
