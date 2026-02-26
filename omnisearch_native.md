@@ -47,7 +47,6 @@ on run {input, parameters}
 	set foundWindow to false
 	set storedPID to ""
 	set storedID to 0
-	set storedTabID to 0
 	
 	try
 		set cachedData to do shell script "cat " & quoted form of cacheFile
@@ -55,9 +54,6 @@ on run {input, parameters}
 		set AppleScript's text item delimiters to ","
 		set storedPID to text item 1 of cachedData
 		set storedID to (text item 2 of cachedData) as integer
-		if (count of text items of cachedData) > 2 then
-			set storedTabID to (text item 3 of cachedData) as integer
-		end if
 		set AppleScript's text item delimiters to oldDelims
 	on error
 		-- No saved window found? No problem, we'll create one later.
@@ -71,13 +67,6 @@ on run {input, parameters}
 	-- to prevent macOS from mistakenly switching to a fullscreen window.
 	if (safariRunning is false) then
 		tell application "Safari" to activate
-		-- DYNAMIC WAIT: Checks every 0.1s for Safari to wake up (max 5 seconds)
-		set wakeCounter to 0
-		repeat until safariRunning or wakeCounter > 50
-			tell application "System Events" to set safariRunning to exists process "Safari"
-			delay 0.1
-			set wakeCounter to wakeCounter + 1
-		end repeat
 	end if
 	
 	tell application "System Events" to set currentPID to unix id of process "Safari" as text
@@ -90,33 +79,17 @@ on run {input, parameters}
 				if exists window id storedID then
 					tell window id storedID
 						set foundWindow to true
-						set foundTab to false
-
-						-- Try to reuse the specific tab ID (ignores pinned tabs)
-						if storedTabID is not 0 then
-							try
-								if exists tab id storedTabID then
-									set URL of tab id storedTabID to targetURL
-									set current tab to tab id storedTabID
-									set foundTab to true
-								end if
-							end try
-						end if
-
-						-- If tab not found (or first run), create a new one at the END
-						if foundTab is false then
+						if (count of tabs) > 0 then
+							set URL of tab 1 to targetURL
+							set current tab to tab 1
+						else
 							make new tab at end of tabs with properties {URL:targetURL}
-							set current tab to last tab
-							set storedTabID to (id of current tab)
-
-							-- Update cache immediately so we remember this new tab
-							do shell script "echo " & quoted form of (currentPID & "," & (storedID as string) & "," & (storedTabID as string)) & " > " & quoted form of cacheFile
 						end if
 						
 						-- Pull window out of the dock if it was minimized.
 						if alwaysFocus is true then
 							set visible to true
-							set miniaturized to false
+							set minimized to false
 							set index to 1
 							tell application "Safari" to activate
 						end if
@@ -166,8 +139,7 @@ on run {input, parameters}
 				
 				-- Save this window's identity so we can find it next time.
 				set newID to (get id of window 1)
-				set newTabID to (get id of tab 1 of window 1)
-				do shell script "echo " & quoted form of (currentPID & "," & (newID as string) & "," & (newTabID as string)) & " > " & quoted form of cacheFile
+				do shell script "echo " & quoted form of (currentPID & "," & (newID as string)) & " > " & quoted form of cacheFile
 			end try
 		end if
 	end tell
