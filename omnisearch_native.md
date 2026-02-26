@@ -4,25 +4,34 @@ This is the recommended, permission-free script currently in use. It includes UR
 
 ## Features
 1.  **Tab Safety**: Always uses **Tab 1** of the dedicated window.
-2.  **WAF Compliance**: Automatically sanitizes URLs for `marketingtools.apple.com`.
-3.  **Robustness**: Handles Safari restarts (PID check) and race conditions.
+2.  **Window Sizing**: Supports "fullscreen", "left", "right", "top", "bottom", "center", or "custom".
+3.  **WAF Compliance**: Automatically sanitizes URLs for `marketingtools.apple.com`.
+4.  **Robustness**: Handles Safari restarts (PID check) and race conditions.
 
 ## The Script
 
 ```applescript
 on run {input, parameters}
-	-- Retrieve the target URL passed from the macOS Shortcuts input
+	-- 1. GET THE LINK:
+	-- This takes the web address sent from your macOS Shortcut.
 	set targetURL to (item 1 of input) as string
 	
-	-- CONFIGURATION:
-	-- Set to 'true' to always bring the search window to the front.
-	-- Set to 'false' to update the tab in the background (if the window is already open).
+	-- ==========================================
+	-- 2. USER SETTINGS (Edit these easily!)
+	-- ==========================================
+	-- Choose your size: "fullscreen", "left", "right", "top", "bottom", "center", or "custom"
+	set windowSize to "fullscreen"
+
+	-- If you chose "custom" above, set your numbers here {Left, Top, Right, Bottom}:
+	set customBounds to {100, 100, 1200, 800}
+
+	-- Set to 'true' to bring Safari to front, 'false' to update in background
 	set alwaysFocus to true
-	
 	-- ==========================================
-	-- URL SANITIZATION & WAF COMPLIANCE
-	-- This block sanitizes all space variations into strict form-encoded spaces ("+") required by Apple Marketing Tools to bypass enterprise Web Application Firewalls (WAF) and prevent 403 errors, while leaving other domains untouched.
-	-- ==========================================
+
+	-- 3. CLEAN THE LINK:
+	-- Some Apple links break if they have spaces. This swaps spaces for "+"
+	-- so the website doesn't block the request.
 	if targetURL contains "marketingtools.apple.com" then
 		set oldDelims to AppleScript's text item delimiters
 		set AppleScript's text item delimiters to {"%2520", "%20", " "}
@@ -31,16 +40,14 @@ on run {input, parameters}
 		set targetURL to urlPieces as string
 		set AppleScript's text item delimiters to oldDelims
 	end if
-	-- ==========================================
 	
-	-- Define the path for the temporary cache file used to persist the dedicated window ID
+	-- 4. PREPARE MEMORY:
+	-- The script uses a tiny file to remember which Safari window it used last.
 	set cacheFile to "/tmp/omnisearch_id.txt"
 	set foundWindow to false
-	
-	-- PRE-FETCH CACHE DATA
-	-- Parsing outside of the application block prevents namespace conflicts ("Expected end of line" errors)
 	set storedPID to ""
 	set storedID to 0
+
 	try
 		set cachedData to do shell script "cat " & quoted form of cacheFile
 		set oldDelims to AppleScript's text item delimiters
@@ -49,36 +56,28 @@ on run {input, parameters}
 		set storedID to (text item 2 of cachedData) as integer
 		set AppleScript's text item delimiters to oldDelims
 	on error
-		-- Proceed with defaults if cache is missing
+		-- No saved window found? No problem, we'll create one later.
 	end try
 	
-	-- STEP 1: PROCESS ID TRACKING
-	-- Check if Safari is running first.
-	set safariRunning to false
-	tell application "System Events"
-		if exists process "Safari" then set safariRunning to true
-	end tell
+	-- 5. CHECK IF SAFARI IS OPEN:
+	-- This is a quick "pro" check to see if Safari is actually running.
+	tell application "System Events" to set safariRunning to exists process "Safari"
 	
-	-- If Safari is NOT running, we MUST activate it.
-	-- If alwaysFocus is TRUE, we WANT to activate it immediately.
+	-- If Safari is closed, or you want it in front, wake it up now.
 	if (safariRunning is false) or (alwaysFocus is true) then
 		tell application "Safari" to activate
 	end if
 	
-	tell application "System Events"
-		set currentPID to unix id of process "Safari" as text
-	end tell
+	tell application "System Events" to set currentPID to unix id of process "Safari" as text
 	
 	tell application "Safari"
-		-- STEP 2: WINDOW VALIDATION & ROUTING
+		-- 6. TRY TO REUSE THE LAST WINDOW:
+		-- If the saved window still exists, load the new link there.
 		if (storedPID is equal to currentPID) then
 			try
-				-- Direct ID targeting is faster and more reliable than iterating loops
 				if exists window id storedID then
 					tell window id storedID
 						set foundWindow to true
-						
-						-- ISOLATED TAB ROUTING:
 						if (count of tabs) > 0 then
 							set URL of tab 1 to targetURL
 							set current tab to tab 1
@@ -86,7 +85,7 @@ on run {input, parameters}
 							make new tab at end of tabs with properties {URL:targetURL}
 						end if
 						
-						-- Force window out of the Dock and un-minimize
+						-- Pull window out of the dock if it was minimized.
 						if alwaysFocus is true then
 							set visible to true
 							set minimized to false
@@ -99,11 +98,13 @@ on run {input, parameters}
 			end try
 		end if
 		
-		-- STEP 3: WINDOW INSTANTIATION
+		-- 7. CREATE & SIZE THE WINDOW:
+		-- If we couldn't find the old window, make a fresh one and size it.
 		if not foundWindow then
 			set initialWindowCount to count of windows
 			make new document with properties {URL:targetURL}
 			
+			-- Wait a moment for the window to actually appear before resizing.
 			set timeoutCounter to 0
 			repeat while (count of windows) is initialWindowCount
 				delay 0.1
@@ -114,28 +115,42 @@ on run {input, parameters}
 			delay 0.1
 			
 			try
-				set bounds of window 1 to {0, 25, 2240, 1260}
+				-- Ask the Mac how big the screen is to calculate the position.
+				tell application "Finder" to set {dL, dT, dR, dB} to bounds of window of desktop
+
+				if windowSize is "left" then
+					set bounds of window 1 to {0, 25, dR / 2, dB}
+				else if windowSize is "right" then
+					set bounds of window 1 to {dR / 2, 25, dR, dB}
+				else if windowSize is "top" then
+					set bounds of window 1 to {0, 25, dR, dB / 2}
+				else if windowSize is "bottom" then
+					set bounds of window 1 to {0, dB / 2, dR, dB}
+				else if windowSize is "center" then
+					set bounds of window 1 to {dR * 0.15, dB * 0.15, dR * 0.85, dB * 0.85}
+				else if windowSize is "custom" then
+					set bounds of window 1 to customBounds
+				else -- Default to Fullscreen
+					set bounds of window 1 to {0, 25, dR, dB}
+				end if
+
+				-- Save this window's identity so we can find it next time.
 				set newID to (get id of window 1)
 				do shell script "echo " & quoted form of (currentPID & "," & (newID as string)) & " > " & quoted form of cacheFile
 			end try
 		end if
 	end tell
 	
-	-- STEP 4: AGGRESSIVE FOCUS STEALING
-	-- Performed outside the Safari block to ensure system-level command priority
+	-- 8. JUMP TO FRONT:
+	-- Final push to make sure Safari is the window you are looking at.
 	if alwaysFocus is true then
-		-- Try the "nuclear" Accessibility method first
+		tell application "Safari" to activate
 		try
-			tell application "System Events"
-				tell process "Safari"
-					set frontmost to true
-					perform action "AXRaise" of window 1
-				end tell
+			tell application "System Events" to tell process "Safari"
+				set frontmost to true
+				perform action "AXRaise" of window 1
 			end tell
 		end try
-		
-		-- Always fire the standard activate as a reliable fallback
-		tell application "Safari" to activate
 	end if
 	
 	return input
