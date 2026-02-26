@@ -750,9 +750,10 @@
         }
 
         .dest-icon:nth-child(1) { color: #f5f5f7; } /* Apple System */
-        .dest-icon:nth-child(2) { color: #fa2d48; } /* Apple Music */
-        .dest-icon:nth-child(3) { color: #2997ff; } /* Web Search */
-        .dest-icon:nth-child(4) { color: #bf5af2; } /* Database/AI */
+        .dest-icon:nth-child(2) { color: #34c759; } /* Apple Maps */
+        .dest-icon:nth-child(3) { color: #fa2d48; } /* Apple Music */
+        .dest-icon:nth-child(4) { color: #2997ff; } /* Web Search */
+        .dest-icon:nth-child(5) { color: #bf5af2; } /* Database/AI */
 
         @media (max-width: 768px) {
             .steps-container, .two-col {
@@ -850,28 +851,33 @@
                         <svg class="routing-lines" viewBox="0 0 400 60">
                             <!-- Path definitions -->
                             <path d="M 200 0 C 200 30, 32 30, 32 60" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
-                            <path d="M 200 0 C 200 30, 144 30, 144 60" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
-                            <path d="M 200 0 C 200 30, 256 30, 256 60" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+                            <path d="M 200 0 C 200 30, 116 30, 116 60" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+                            <path d="M 200 0 C 200 30, 200 30, 200 60" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+                            <path d="M 200 0 C 200 30, 284 30, 284 60" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
                             <path d="M 200 0 C 200 30, 368 30, 368 60" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
 
                             <!-- Glowing data packets traveling along the paths -->
                             <circle cx="0" cy="0" r="2.5" fill="#f5f5f7">
                                  <animateMotion dur="2.5s" repeatCount="indefinite" path="M 200 0 C 200 30, 32 30, 32 60" />
                             </circle>
+                            <circle cx="0" cy="0" r="2.5" fill="#34c759">
+                                 <animateMotion dur="2.5s" begin="0.4s" repeatCount="indefinite" path="M 200 0 C 200 30, 116 30, 116 60" />
+                            </circle>
                             <circle cx="0" cy="0" r="2.5" fill="#fa2d48">
-                                 <animateMotion dur="2.5s" begin="0.6s" repeatCount="indefinite" path="M 200 0 C 200 30, 144 30, 144 60" />
+                                 <animateMotion dur="2.5s" begin="0.8s" repeatCount="indefinite" path="M 200 0 C 200 30, 200 30, 200 60" />
                             </circle>
                             <circle cx="0" cy="0" r="2.5" fill="#2997ff">
-                                 <animateMotion dur="2.5s" begin="1.2s" repeatCount="indefinite" path="M 200 0 C 200 30, 256 30, 256 60" />
+                                 <animateMotion dur="2.5s" begin="1.2s" repeatCount="indefinite" path="M 200 0 C 200 30, 284 30, 284 60" />
                             </circle>
                             <circle cx="0" cy="0" r="2.5" fill="#bf5af2">
-                                 <animateMotion dur="2.5s" begin="1.8s" repeatCount="indefinite" path="M 200 0 C 200 30, 368 30, 368 60" />
+                                 <animateMotion dur="2.5s" begin="1.6s" repeatCount="indefinite" path="M 200 0 C 200 30, 368 30, 368 60" />
                             </circle>
                         </svg>
 
                         <!-- Target Hubs -->
                         <div class="destination-grid">
                             <div class="dest-icon"><i class="fa-brands fa-apple"></i></div>
+                            <div class="dest-icon"><i class="fa-solid fa-map-location-dot"></i></div>
                             <div class="dest-icon"><i class="fa-solid fa-music"></i></div>
                             <div class="dest-icon"><i class="fa-solid fa-globe"></i></div>
                             <div class="dest-icon"><i class="fa-solid fa-server"></i></div>
