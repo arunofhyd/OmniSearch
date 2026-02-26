@@ -5,53 +5,40 @@ This script includes all the safety features of the standard version but adds an
 
 ## Features
 1.  **Auto-Update**: Checks `omniisearch.netlify.app/version.txt` for updates.
-2.  **Configurable Frequency**: "always", "daily", or "weekly".
-3.  **Tab Safety**: Uses the same safe "Tab 1" logic.
+2.  **Window Sizing**: Supports "fullscreen", "left", "right", "top", "bottom", "center", or "custom".
+3.  **Configurable Frequency**: "always", "daily", or "weekly".
+4.  **Tab Safety**: Uses the same safe "Tab 1" logic.
 
 ## The Script
 
 ```applescript
 on run {input, parameters}
-	-- Retrieve the target URL passed from the macOS Shortcuts input
+	-- 1. GET THE LINK:
+	-- This takes the web address sent from your macOS Shortcut.
 	set targetURL to (item 1 of input) as string
 	
 	-- ==========================================
-	-- CONFIGURATION & UPDATE SETTINGS
+	-- 2. USER SETTINGS (Edit these easily!)
 	-- ==========================================
-	-- Set to 'true' to always bring the search window to the front.
-	-- Set to 'false' to update the tab in the background (if the window is already open).
+	-- Choose your size: "fullscreen", "left", "right", "top", "bottom", "center", or "custom"
+	set windowSize to "fullscreen"
+
+	-- If you chose "custom" above, set your numbers here {Left, Top, Right, Bottom}:
+	set customBounds to {100, 100, 1200, 800}
+
+	-- Set to 'true' to bring Safari to front, 'false' to update in background
 	set alwaysFocus to true
 	
-	-- Set updateFrequency to:
+	-- Update Settings:
 	-- "always" (check every run - best for testing)
 	-- "daily"  (standard production setting)
 	-- "weekly" (minimum intrusion)
 	set updateFrequency to "always"
-	set currentVersion to 1.0
-	set cacheFile to "/tmp/omnisearch_id.txt"
+	set currentVersion to 1.1
 	-- ==========================================
 	
-	-- ==========================================
-	-- PRE-FETCH CACHE DATA
-	-- Fetching early prevents namespace conflicts and allows the Updater to safely route
-	-- ==========================================
-	set storedPID to ""
-	set storedID to 0
-	try
-		set cachedData to do shell script "cat " & quoted form of cacheFile
-		set oldDelims to AppleScript's text item delimiters
-		set AppleScript's text item delimiters to ","
-		set storedPID to text item 1 of cachedData
-		set storedID to (text item 2 of cachedData) as integer
-		set AppleScript's text item delimiters to oldDelims
-	on error
-		-- Proceed with defaults if cache is missing
-	end try
-	
-	-- ==========================================
-	-- AUTOMATIC UPDATE CHECKER LOGIC
-	-- This block handles silent background version checks against the Netlify-hosted version.txt
-	-- ==========================================
+	-- 3. AUTO-UPDATE CHECK:
+	-- This block handles silent background version checks against the hosted version.txt
 	set dateCache to "/tmp/omnisearch_lastcheck.txt"
 	set todayDate to (current date)
 	set todayDateString to short date string of todayDate
@@ -78,7 +65,7 @@ on run {input, parameters}
 	
 	if shouldCheck then
 		try
-			-- Pinging the server with a 2-second timeout for better reliability.
+			-- Pinging the server with a 2-second timeout.
 			-- We use 'awk' to extract just the first word (version number) from the first line of the new multi-line format.
 			set remoteVersionString to do shell script "curl -s --max-time 2 https://omniisearch.netlify.app/version.txt | head -n 1 | awk '{print $1}'"
 			
@@ -100,11 +87,24 @@ on run {input, parameters}
 						set dialogResult to display dialog "A new version of Omni Search (v" & remoteVersionString & ") is available!" & return & return & "You are currently running v" & currentVersion & ". Would you like to download the update?" with title "Omni Search Update" buttons {"Skip for now", "Open Website"} default button "Open Website"
 						
 						if button returned of dialogResult is "Open Website" then
-							-- FIX: Process tracking must happen in System Events, not Safari, to avoid syntax errors
+							-- Get Safari PID safely
 							tell application "System Events"
 								set currentSafariPID to unix id of process "Safari" as text
 							end tell
 							
+							-- Get Cache data to check if we can reuse the window
+							set cacheFile to "/tmp/omnisearch_id.txt"
+							set storedPID to ""
+							set storedID to 0
+							try
+								set cachedData to do shell script "cat " & quoted form of cacheFile
+								set oldDelims to AppleScript's text item delimiters
+								set AppleScript's text item delimiters to ","
+								set storedPID to text item 1 of cachedData
+								set storedID to (text item 2 of cachedData) as integer
+								set AppleScript's text item delimiters to oldDelims
+							end try
+
 							tell application "Safari"
 								set updateTargetFound to false
 								
@@ -143,11 +143,10 @@ on run {input, parameters}
 			-- Silent fail on network error to allow search to proceed
 		end try
 	end if
-	
-	-- ==========================================
-	-- URL SANITIZATION & WAF COMPLIANCE
-	-- This block sanitizes all space variations into strict form-encoded spaces ("+") required by Apple Marketing Tools
-	-- ==========================================
+
+	-- 4. CLEAN THE LINK:
+	-- Some Apple links break if they have spaces. This swaps spaces for "+"
+	-- so the website doesn't block the request.
 	if targetURL contains "marketingtools.apple.com" then
 		set oldDelims to AppleScript's text item delimiters
 		set AppleScript's text item delimiters to {"%2520", "%20", " "}
@@ -156,36 +155,44 @@ on run {input, parameters}
 		set targetURL to urlPieces as string
 		set AppleScript's text item delimiters to oldDelims
 	end if
-	-- ==========================================
 	
+	-- 5. PREPARE MEMORY:
+	-- The script uses a tiny file to remember which Safari window it used last.
+	set cacheFile to "/tmp/omnisearch_id.txt"
 	set foundWindow to false
+	set storedPID to ""
+	set storedID to 0
 	
-	-- STEP 1: PROCESS ID TRACKING
-	-- Check if Safari is running first.
-	set safariRunning to false
-	tell application "System Events"
-		if exists process "Safari" then set safariRunning to true
-	end tell
+	try
+		set cachedData to do shell script "cat " & quoted form of cacheFile
+		set oldDelims to AppleScript's text item delimiters
+		set AppleScript's text item delimiters to ","
+		set storedPID to text item 1 of cachedData
+		set storedID to (text item 2 of cachedData) as integer
+		set AppleScript's text item delimiters to oldDelims
+	on error
+		-- No saved window found? No problem, we'll create one later.
+	end try
+
+	-- 6. CHECK IF SAFARI IS OPEN:
+	-- This is a quick "pro" check to see if Safari is actually running.
+	tell application "System Events" to set safariRunning to exists process "Safari"
 	
-	-- If Safari is NOT running, we MUST activate it.
-	-- If alwaysFocus is TRUE, we WANT to activate it immediately.
+	-- If Safari is closed, or you want it in front, wake it up now.
 	if (safariRunning is false) or (alwaysFocus is true) then
 		tell application "Safari" to activate
 	end if
 	
-	tell application "System Events"
-		set currentPID to unix id of process "Safari" as text
-	end tell
+	tell application "System Events" to set currentPID to unix id of process "Safari" as text
 	
 	tell application "Safari"
-		-- STEP 2: WINDOW VALIDATION & ROUTING
+		-- 7. TRY TO REUSE THE LAST WINDOW:
+		-- If the saved window still exists, load the new link there.
 		if (storedPID is equal to currentPID) then
 			try
 				if exists window id storedID then
 					tell window id storedID
 						set foundWindow to true
-						
-						-- ISOLATED TAB ROUTING
 						if (count of tabs) > 0 then
 							set URL of tab 1 to targetURL
 							set current tab to tab 1
@@ -193,6 +200,7 @@ on run {input, parameters}
 							make new tab at end of tabs with properties {URL:targetURL}
 						end if
 						
+						-- Pull window out of the dock if it was minimized.
 						if alwaysFocus is true then
 							set visible to true
 							set minimized to false
@@ -205,12 +213,13 @@ on run {input, parameters}
 			end try
 		end if
 		
-		-- STEP 3: WINDOW INSTANTIATION
+		-- 8. CREATE & SIZE THE WINDOW:
+		-- If we couldn't find the old window, make a fresh one and size it.
 		if not foundWindow then
 			set initialWindowCount to count of windows
 			make new document with properties {URL:targetURL}
 			
-			-- RACE CONDITION PREVENTION
+			-- Wait a moment for the window to actually appear before resizing.
 			set timeoutCounter to 0
 			repeat while (count of windows) is initialWindowCount
 				delay 0.1
@@ -221,29 +230,42 @@ on run {input, parameters}
 			delay 0.1
 			
 			try
-				-- Targeting window 1 specifically for bounds settings
-				set bounds of window 1 to {0, 25, 2240, 1260}
+				-- Ask the Mac how big the screen is to calculate the position.
+				tell application "Finder" to set {dL, dT, dR, dB} to bounds of window of desktop
+
+				if windowSize is "left" then
+					set bounds of window 1 to {0, 25, dR / 2, dB}
+				else if windowSize is "right" then
+					set bounds of window 1 to {dR / 2, 25, dR, dB}
+				else if windowSize is "top" then
+					set bounds of window 1 to {0, 25, dR, dB / 2}
+				else if windowSize is "bottom" then
+					set bounds of window 1 to {0, dB / 2, dR, dB}
+				else if windowSize is "center" then
+					set bounds of window 1 to {dR * 0.15, dB * 0.15, dR * 0.85, dB * 0.85}
+				else if windowSize is "custom" then
+					set bounds of window 1 to customBounds
+				else -- Default to Fullscreen
+					set bounds of window 1 to {0, 25, dR, dB}
+				end if
+
+				-- Save this window's identity so we can find it next time.
 				set newID to (get id of window 1)
 				do shell script "echo " & quoted form of (currentPID & "," & (newID as string)) & " > " & quoted form of cacheFile
 			end try
 		end if
 	end tell
 	
-	-- STEP 4: AGGRESSIVE FOCUS STEALING
-	-- Performed outside the Safari block to ensure system-level command priority
+	-- 9. JUMP TO FRONT:
+	-- Final push to make sure Safari is the window you are looking at.
 	if alwaysFocus is true then
-		tell application "System Events"
-			tell process "Safari"
-				set frontmost to true
-				try
-					-- AXRaise is the strongest method to pull a window from background spaces
-					perform action "AXRaise" of window 1
-				end try
-			end tell
-		end tell
-		
-		-- Always fire the standard activate as a reliable fallback
 		tell application "Safari" to activate
+		try
+			tell application "System Events" to tell process "Safari"
+				set frontmost to true
+				perform action "AXRaise" of window 1
+			end tell
+		end try
 	end if
 	
 	return input
