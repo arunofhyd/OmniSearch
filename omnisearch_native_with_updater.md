@@ -78,8 +78,9 @@ on run {input, parameters}
 	
 	if shouldCheck then
 		try
-			-- Pinging the server with a 2-second timeout for better reliability
-			set remoteVersionString to do shell script "curl -s --max-time 2 https://omniisearch.netlify.app/version.txt"
+			-- Pinging the server with a 2-second timeout for better reliability.
+			-- We use 'awk' to extract just the first word (version number) from the first line of the new multi-line format.
+			set remoteVersionString to do shell script "curl -s --max-time 2 https://omniisearch.netlify.app/version.txt | head -n 1 | awk '{print $1}'"
 			
 			if remoteVersionString is not "" then
 				-- Handle decimal points safely across different system locales
