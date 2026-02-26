@@ -483,9 +483,11 @@
         .delay-3 { transition-delay: 0.3s; }
         .delay-4 { transition-delay: 0.4s; }
 
-        /* ==========================================================================
+                /* ==========================================================================
            8. HERO CARD STYLES (New)
            ========================================================================== */
+
+        /* Core Hero Card Styling */
         .hero-card {
             width: 1280px;
             height: 720px;
@@ -498,13 +500,18 @@
             /* Prioritize Apple's native San Francisco font, fallback to Inter */
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
             position: relative;
+        }
+
+        /* 2. LAYOUT - Split Layout */
+        .hero-card.bleed-image-layout {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             align-items: start;
+            padding: 0;
         }
 
         @media (max-width: 1024px) {
-             .hero-card {
+             .hero-card.bleed-image-layout {
                 grid-template-columns: 1fr;
                 height: auto;
                 min-height: 720px;
@@ -513,20 +520,23 @@
                 border-radius: 0 0 20px 20px;
                 border-left: none;
                 border-top: 1px solid rgba(255, 255, 255, 0.05);
-                height: 500px;
+                height: 500px; /* Reduced artwork height on mobile */
              }
         }
 
         .content-container-hero {
-            /* Generous padding for clean negative space */
-            padding: 80px 70px 80px 80px;
+            /* Generous padding for clean negative space - Reduced to 40px to prevent clipping */
+            padding: 40px 50px 40px 60px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             height: 100%;
         }
 
-        .pro-badge {
+        /* 3. TYPOGRAPHY & APPLE STYLING */
+
+        /* Premium Translucent Badge */
+        .pro-badge-hero {
             align-self: flex-start;
             padding: 6px 14px;
             border-radius: 20px;
@@ -541,6 +551,7 @@
             backdrop-filter: blur(10px);
         }
 
+        /* Tight, high-contrast hero text */
         .slide-title-hero {
             font-size: 72px;
             font-weight: 700;
@@ -550,6 +561,7 @@
             margin-bottom: 20px;
         }
 
+        /* Vibrant macOS style text gradient */
         .gradient-text {
             background: linear-gradient(135deg, #2997ff 0%, #b388ff 100%);
             -webkit-background-clip: text;
@@ -557,6 +569,7 @@
             display: inline-block;
         }
 
+        /* Muted, highly legible subtitle gray */
         .body-text-hero {
             font-size: 20px;
             line-height: 1.5;
@@ -567,6 +580,7 @@
             max-width: 95%;
         }
 
+        /* 4. FEATURE LIST */
         .feature-list-hero {
             display: flex;
             flex-direction: column;
@@ -579,6 +593,7 @@
             gap: 16px;
         }
 
+        /* Rounded glass-like icon blocks */
         .feature-icon-hero {
             flex-shrink: 0;
             display: flex;
@@ -614,11 +629,13 @@
             font-weight: 400;
         }
 
+        /* 5. HERO ARTWORK (Abstract UI Representation) */
         .hero-artwork {
-            height: 100%;
+            height: 100%; /* Fill the container height */
             width: 100%;
             position: relative;
             background: radial-gradient(circle at 50% 50%, #151516 0%, #000000 100%);
+            /* border-radius inherited from parent overflow hidden usually, but here explicit on right */
             border-radius: 0 20px 20px 0;
             display: flex;
             flex-direction: column;
@@ -655,6 +672,7 @@
             width: 100%;
         }
 
+        /* The Main Omni Search Bar Mockup */
         .search-bar-mock {
             background: rgba(30, 30, 32, 0.7);
             backdrop-filter: blur(20px);
@@ -690,6 +708,7 @@
             letter-spacing: -0.02em;
         }
 
+        /* Routing Lines Container */
         .routing-container {
             display: flex;
             justify-content: space-between;
@@ -707,6 +726,7 @@
             overflow: visible;
         }
 
+        /* Destination Target Nodes */
         .destination-grid {
             display: flex;
             justify-content: space-between;
@@ -729,10 +749,10 @@
             transition: all 0.3s ease;
         }
 
-        .dest-icon:nth-child(1) { color: #f5f5f7; }
-        .dest-icon:nth-child(2) { color: #34c759; }
-        .dest-icon:nth-child(3) { color: #2997ff; }
-        .dest-icon:nth-child(4) { color: #bf5af2; }
+        .dest-icon:nth-child(1) { color: #f5f5f7; } /* Apple System */
+        .dest-icon:nth-child(2) { color: #fa2d48; } /* Apple Music */
+        .dest-icon:nth-child(3) { color: #2997ff; } /* Web Search */
+        .dest-icon:nth-child(4) { color: #bf5af2; } /* Database/AI */
 
         @media (max-width: 768px) {
             .steps-container, .two-col {
@@ -770,14 +790,14 @@
         </div>
     </div>
 
-    <!-- Slide 1: Hero Card Presentation -->
+        <!-- Slide 1: Hero Card Presentation -->
     <div class="slide-container">
-        <div class="hero-card">
+        <div class="hero-card bleed-image-layout" id="slide1">
 
             <!-- Left Side: Text and Features -->
             <div class="content-container-hero">
                 <!-- Modern pill badge -->
-                <div class="pro-badge">macOS Native</div>
+                <div class="pro-badge-hero">macOS Native</div>
 
                 <h2 class="slide-title-hero">Omni Search.<br><span class="gradient-text">Absolute focus.</span></h2>
 
@@ -838,7 +858,7 @@
                             <circle cx="0" cy="0" r="2.5" fill="#f5f5f7">
                                  <animateMotion dur="2.5s" repeatCount="indefinite" path="M 200 0 C 200 30, 32 30, 32 60" />
                             </circle>
-                            <circle cx="0" cy="0" r="2.5" fill="#34c759">
+                            <circle cx="0" cy="0" r="2.5" fill="#fa2d48">
                                  <animateMotion dur="2.5s" begin="0.6s" repeatCount="indefinite" path="M 200 0 C 200 30, 144 30, 144 60" />
                             </circle>
                             <circle cx="0" cy="0" r="2.5" fill="#2997ff">
@@ -852,7 +872,7 @@
                         <!-- Target Hubs -->
                         <div class="destination-grid">
                             <div class="dest-icon"><i class="fa-brands fa-apple"></i></div>
-                            <div class="dest-icon"><i class="fa-solid fa-file-excel"></i></div>
+                            <div class="dest-icon"><i class="fa-solid fa-music"></i></div>
                             <div class="dest-icon"><i class="fa-solid fa-globe"></i></div>
                             <div class="dest-icon"><i class="fa-solid fa-server"></i></div>
                         </div>
