@@ -201,7 +201,10 @@
             width: 100vw;
             overflow: hidden; /* Hide overflow from wrapper */
             padding: 2rem 0;
-            /* Center the starting point visually on desktop, or just rely on flex */
+
+            /* FADE MASK: Create a soft fade on left/right edges */
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
         }
 
         .version-carousel {
@@ -297,6 +300,24 @@
             flex-grow: 1;
             margin-bottom: 2rem;
             overflow-y: auto;
+            padding-right: 0.5rem; /* Add spacing for scrollbar */
+
+            /* Custom Scrollbar for a premium look */
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+
+        .card-body::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .card-body::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .card-body::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
         }
 
         .feature-list {
@@ -468,8 +489,15 @@
             }
             .slide-container { padding: 10% 0; }
             .fixed-download-btn { top: 1rem; right: 1rem; font-size: 0.9rem; padding: 0.6rem 1rem;}
-            .version-card { flex: 0 0 85vw; height: auto; min-height: 450px;} /* Mobile card width */
-            .version-carousel { justify-content: flex-start; padding: 0 7.5vw; }
+            /*
+               Mobile Carousel:
+               - Card width: 80vw (allows peeking of next card)
+               - Gap: 1.5rem (tighter spacing)
+               - Padding: 7.5vw (centers first card visually with mask)
+            */
+            /* Set a fixed height on mobile to force scrolling for long content */
+            .version-card { flex: 0 0 80vw; height: 500px; min-height: 450px;}
+            .version-carousel { gap: 1.5rem; justify-content: flex-start; padding: 0 7.5vw; }
         }
     </style>
 </head>
