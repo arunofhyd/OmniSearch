@@ -15,24 +15,43 @@ on run {input, parameters}
 	-- Retrieve the target URL passed from the macOS Shortcuts input
 	set targetURL to (item 1 of input) as string
 	
-	-- CONFIGURATION:
+	-- ==========================================
+	-- CONFIGURATION & UPDATE SETTINGS
+	-- ==========================================
 	-- Set to 'true' to always bring the search window to the front.
 	-- Set to 'false' to update the tab in the background (if the window is already open).
 	set alwaysFocus to true
 	
-	-- ==========================================
-	-- CONFIGURATION & UPDATE SETTINGS
 	-- Set updateFrequency to:
 	-- "always" (check every run - best for testing)
 	-- "daily"  (standard production setting)
 	-- "weekly" (minimum intrusion)
-	-- ==========================================
 	set updateFrequency to "always"
 	set currentVersion to 1.0
+	set cacheFile to "/tmp/omnisearch_id.txt"
 	-- ==========================================
 	
+	-- ==========================================
+	-- PRE-FETCH CACHE DATA
+	-- Fetching early prevents namespace conflicts and allows the Updater to safely route
+	-- ==========================================
+	set storedPID to ""
+	set storedID to 0
+	try
+		set cachedData to do shell script "cat " & quoted form of cacheFile
+		set oldDelims to AppleScript's text item delimiters
+		set AppleScript's text item delimiters to ","
+		set storedPID to text item 1 of cachedData
+		set storedID to (text item 2 of cachedData) as integer
+		set AppleScript's text item delimiters to oldDelims
+	on error
+		-- Proceed with defaults if cache is missing
+	end try
+	
+	-- ==========================================
 	-- AUTOMATIC UPDATE CHECKER LOGIC
 	-- This block handles silent background version checks against the Netlify-hosted version.txt
+	-- ==========================================
 	set dateCache to "/tmp/omnisearch_lastcheck.txt"
 	set todayDate to (current date)
 	set todayDateString to short date string of todayDate
@@ -80,11 +99,30 @@ on run {input, parameters}
 						set dialogResult to display dialog "A new version of Omni Search (v" & remoteVersionString & ") is available!" & return & return & "You are currently running v" & currentVersion & ". Would you like to download the update?" with title "Omni Search Update" buttons {"Skip for now", "Open Website"} default button "Open Website"
 						
 						if button returned of dialogResult is "Open Website" then
+							-- FIX: Process tracking must happen in System Events, not Safari, to avoid syntax errors
+							tell application "System Events"
+								set currentSafariPID to unix id of process "Safari" as text
+							end tell
+							
 							tell application "Safari"
-								if (count of windows) is 0 then
+								set updateTargetFound to false
+								
+								-- Specific check to see if OmniSearch window is open to prevent work loss
+								if (storedPID is equal to currentSafariPID) and (storedID is not 0) then
+									try
+										if exists window id storedID then
+											tell window id storedID
+												set URL of tab 1 to "https://omniisearch.netlify.app"
+												set index to 1
+												set updateTargetFound to true
+											end tell
+										end if
+									end try
+								end if
+								
+								-- If no OmniSearch window, open a NEW window to protect active tabs
+								if not updateTargetFound then
 									make new document with properties {URL:"https://omniisearch.netlify.app"}
-								else
-									set URL of tab 1 of window 1 to "https://omniisearch.netlify.app"
 								end if
 								activate
 							end tell
@@ -104,15 +142,13 @@ on run {input, parameters}
 			-- Silent fail on network error to allow search to proceed
 		end try
 	end if
-	-- ==========================================
 	
 	-- ==========================================
 	-- URL SANITIZATION & WAF COMPLIANCE
-	-- This block sanitizes all space variations into strict form-encoded spaces ("+") required by Apple Marketing Tools to bypass enterprise Web Application Firewalls (WAF) and prevent 403 errors, while leaving other domains untouched.
+	-- This block sanitizes all space variations into strict form-encoded spaces ("+") required by Apple Marketing Tools
 	-- ==========================================
 	if targetURL contains "marketingtools.apple.com" then
 		set oldDelims to AppleScript's text item delimiters
-		-- Advanced multi-delimiter split handles raw spaces, %20, and double-encoded %2520 in one pass
 		set AppleScript's text item delimiters to {"%2520", "%20", " "}
 		set urlPieces to text items of targetURL
 		set AppleScript's text item delimiters to "+"
@@ -121,23 +157,7 @@ on run {input, parameters}
 	end if
 	-- ==========================================
 	
-	-- Define the path for the temporary cache file used to persist the dedicated window ID
-	set cacheFile to "/tmp/omnisearch_id.txt"
 	set foundWindow to false
-	
-	-- PRE-FETCH CACHE DATA
-	set storedPID to ""
-	set storedID to 0
-	try
-		set cachedData to do shell script "cat " & quoted form of cacheFile
-		set oldDelims to AppleScript's text item delimiters
-		set AppleScript's text item delimiters to ","
-		set storedPID to text item 1 of cachedData
-		set storedID to (text item 2 of cachedData) as integer
-		set AppleScript's text item delimiters to oldDelims
-	on error
-		-- Proceed with defaults
-	end try
 	
 	-- STEP 1: PROCESS ID TRACKING
 	-- Check if Safari is running first.
@@ -201,7 +221,7 @@ on run {input, parameters}
 			
 			try
 				-- Targeting window 1 specifically for bounds settings
-				set bounds of window 1 to {1120, 25, 2240, 1260}
+				set bounds of window 1 to {0, 25, 2240, 1260}
 				set newID to (get id of window 1)
 				do shell script "echo " & quoted form of (currentPID & "," & (newID as string)) & " > " & quoted form of cacheFile
 			end try
@@ -220,6 +240,8 @@ on run {input, parameters}
 				end try
 			end tell
 		end tell
+		
+		-- Always fire the standard activate as a reliable fallback
 		tell application "Safari" to activate
 	end if
 	
