@@ -114,7 +114,7 @@ on run {input, parameters}
 			delay 0.1
 			
 			try
-				set bounds of window 1 to {1120, 25, 2240, 1260}
+				set bounds of window 1 to {0, 25, 2240, 1260}
 				set newID to (get id of window 1)
 				do shell script "echo " & quoted form of (currentPID & "," & (newID as string)) & " > " & quoted form of cacheFile
 			end try
@@ -124,15 +124,17 @@ on run {input, parameters}
 	-- STEP 4: AGGRESSIVE FOCUS STEALING
 	-- Performed outside the Safari block to ensure system-level command priority
 	if alwaysFocus is true then
-		tell application "System Events"
-			tell process "Safari"
-				set frontmost to true
-				try
-					-- AXRaise is the strongest method to pull a window from background spaces
+		-- Try the "nuclear" Accessibility method first
+		try
+			tell application "System Events"
+				tell process "Safari"
+					set frontmost to true
 					perform action "AXRaise" of window 1
-				end try
+				end tell
 			end tell
-		end tell
+		end try
+		
+		-- Always fire the standard activate as a reliable fallback
 		tell application "Safari" to activate
 	end if
 	
