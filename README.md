@@ -68,16 +68,6 @@ Omni Search is a powerful, native macOS Shortcut utility designed to eliminate t
 
 Omni Search is designed to be hacked. You can modify the "Dictionary" object within the Shortcut to add your own search engines.
 
-**Example: Adding YouTube**
-```json
-{
-  "key": "YouTube",
-  "value": "https://www.youtube.com/results?search_query="
-}
-```
-
----
-
 ## Technical Details
 
 The core logic relies on `AppleScript` for window management.
