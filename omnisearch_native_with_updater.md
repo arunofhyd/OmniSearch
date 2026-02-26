@@ -22,10 +22,10 @@ on run {input, parameters}
 	-- ==========================================
 	-- Choose your size: "fullscreen", "left", "right", "top", "bottom", "center", or "custom"
 	set windowSize to "fullscreen"
-
+	
 	-- If you chose "custom" above, set your coordinates here {Left, Top, Right, Bottom}:
 	set customBounds to {100, 100, 1200, 800}
-
+	
 	-- Set to 'true' to bring Safari to front, 'false' to update in background
 	set alwaysFocus to true
 	
@@ -96,19 +96,15 @@ on run {input, parameters}
 							set cacheFile to "/tmp/omnisearch_id.txt"
 							set storedPID to ""
 							set storedID to 0
-							set storedTabID to 0
 							try
 								set cachedData to do shell script "cat " & quoted form of cacheFile
 								set oldDelims to AppleScript's text item delimiters
 								set AppleScript's text item delimiters to ","
 								set storedPID to text item 1 of cachedData
 								set storedID to (text item 2 of cachedData) as integer
-								if (count of text items of cachedData) > 2 then
-									set storedTabID to (text item 3 of cachedData) as integer
-								end if
 								set AppleScript's text item delimiters to oldDelims
 							end try
-
+							
 							tell application "Safari"
 								set updateTargetFound to false
 								
@@ -117,24 +113,7 @@ on run {input, parameters}
 									try
 										if exists window id storedID then
 											tell window id storedID
-												set foundUpdateTab to false
-												if storedTabID is not 0 then
-													try
-														if exists tab id storedTabID then
-															set URL of tab id storedTabID to "https://omniisearch.netlify.app"
-															set current tab to tab id storedTabID
-															set foundUpdateTab to true
-														end if
-													end try
-												end if
-
-												if not foundUpdateTab then
-													make new tab at end of tabs with properties {URL:"https://omniisearch.netlify.app"}
-													set current tab to last tab
-													set newTabID to id of current tab
-													do shell script "echo " & quoted form of (currentSafariPID & "," & (storedID as string) & "," & (newTabID as string)) & " > " & quoted form of cacheFile
-												end if
-
+												set URL of tab 1 to "https://omniisearch.netlify.app"
 												set index to 1
 												set updateTargetFound to true
 											end tell
@@ -164,7 +143,7 @@ on run {input, parameters}
 			-- Silent fail on network error to allow search to proceed
 		end try
 	end if
-
+	
 	-- 4. CLEAN THE LINK:
 	-- Some Apple links break if they have spaces. This swaps spaces for "+"
 	-- so the website doesn't block the request.
@@ -183,7 +162,6 @@ on run {input, parameters}
 	set foundWindow to false
 	set storedPID to ""
 	set storedID to 0
-	set storedTabID to 0
 	
 	try
 		set cachedData to do shell script "cat " & quoted form of cacheFile
@@ -191,14 +169,11 @@ on run {input, parameters}
 		set AppleScript's text item delimiters to ","
 		set storedPID to text item 1 of cachedData
 		set storedID to (text item 2 of cachedData) as integer
-		if (count of text items of cachedData) > 2 then
-			set storedTabID to (text item 3 of cachedData) as integer
-		end if
 		set AppleScript's text item delimiters to oldDelims
 	on error
 		-- No saved window found? No problem, we'll create one later.
 	end try
-
+	
 	-- 6. CHECK IF SAFARI IS OPEN:
 	-- This is a quick "pro" check to see if Safari is actually running.
 	tell application "System Events" to set safariRunning to exists process "Safari"
@@ -207,13 +182,6 @@ on run {input, parameters}
 	-- to prevent macOS from mistakenly switching to a fullscreen window.
 	if (safariRunning is false) then
 		tell application "Safari" to activate
-		-- DYNAMIC WAIT: Checks every 0.1s for Safari to wake up (max 5 seconds)
-		set wakeCounter to 0
-		repeat until safariRunning or wakeCounter > 50
-			tell application "System Events" to set safariRunning to exists process "Safari"
-			delay 0.1
-			set wakeCounter to wakeCounter + 1
-		end repeat
 	end if
 	
 	tell application "System Events" to set currentPID to unix id of process "Safari" as text
@@ -226,33 +194,17 @@ on run {input, parameters}
 				if exists window id storedID then
 					tell window id storedID
 						set foundWindow to true
-						set foundTab to false
-
-						-- Try to reuse the specific tab ID (ignores pinned tabs)
-						if storedTabID is not 0 then
-							try
-								if exists tab id storedTabID then
-									set URL of tab id storedTabID to targetURL
-									set current tab to tab id storedTabID
-									set foundTab to true
-								end if
-							end try
-						end if
-
-						-- If tab not found (or first run), create a new one at the END
-						if foundTab is false then
+						if (count of tabs) > 0 then
+							set URL of tab 1 to targetURL
+							set current tab to tab 1
+						else
 							make new tab at end of tabs with properties {URL:targetURL}
-							set current tab to last tab
-							set storedTabID to (id of current tab)
-
-							-- Update cache immediately so we remember this new tab
-							do shell script "echo " & quoted form of (currentPID & "," & (storedID as string) & "," & (storedTabID as string)) & " > " & quoted form of cacheFile
 						end if
 						
 						-- Pull window out of the dock if it was minimized.
 						if alwaysFocus is true then
 							set visible to true
-							set miniaturized to false
+							set minimized to false
 							set index to 1
 							tell application "Safari" to activate
 						end if
@@ -283,7 +235,7 @@ on run {input, parameters}
 			try
 				-- Ask the Mac how big the screen is to calculate the position.
 				tell application "Finder" to set {dL, dT, dR, dB} to bounds of window of desktop
-
+				
 				if windowSize is "left" then
 					set bounds of window 1 to {0, 25, dR / 2, dB}
 				else if windowSize is "right" then
@@ -299,11 +251,10 @@ on run {input, parameters}
 				else -- Default to Fullscreen
 					set bounds of window 1 to {0, 25, dR, dB}
 				end if
-
+				
 				-- Save this window's identity so we can find it next time.
 				set newID to (get id of window 1)
-				set newTabID to (get id of tab 1 of window 1)
-				do shell script "echo " & quoted form of (currentPID & "," & (newID as string) & "," & (newTabID as string)) & " > " & quoted form of cacheFile
+				do shell script "echo " & quoted form of (currentPID & "," & (newID as string)) & " > " & quoted form of cacheFile
 			end try
 		end if
 	end tell
