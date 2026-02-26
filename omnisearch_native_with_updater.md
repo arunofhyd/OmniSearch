@@ -34,11 +34,11 @@ on run {input, parameters}
 	-- "daily"  (standard production setting)
 	-- "weekly" (minimum intrusion)
 	set updateFrequency to "always"
-	set currentVersion to 1.1
 	-- ==========================================
 	
 	-- 3. AUTO-UPDATE CHECK:
 	-- This block handles silent background version checks against the hosted version.txt
+	set currentVersion to 1.1
 	set dateCache to "/tmp/omnisearch_lastcheck.txt"
 	set todayDate to (current date)
 	set todayDateString to short date string of todayDate
