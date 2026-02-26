@@ -178,8 +178,9 @@ on run {input, parameters}
 	-- This is a quick "pro" check to see if Safari is actually running.
 	tell application "System Events" to set safariRunning to exists process "Safari"
 	
-	-- If Safari is closed, or you want it in front, wake it up now.
-	if (safariRunning is false) or (alwaysFocus is true) then
+	-- If Safari is closed, wake it up now. If it's running, we'll activate it LATER
+	-- to prevent macOS from mistakenly switching to a fullscreen window.
+	if (safariRunning is false) then
 		tell application "Safari" to activate
 	end if
 	
@@ -205,6 +206,7 @@ on run {input, parameters}
 							set visible to true
 							set minimized to false
 							set index to 1
+							tell application "Safari" to activate
 						end if
 					end tell
 				end if
@@ -216,6 +218,7 @@ on run {input, parameters}
 		-- 8. CREATE & SIZE THE WINDOW:
 		-- If we couldn't find the old window, make a fresh one and size it.
 		if not foundWindow then
+			tell application "Safari" to activate
 			set initialWindowCount to count of windows
 			make new document with properties {URL:targetURL}
 			
