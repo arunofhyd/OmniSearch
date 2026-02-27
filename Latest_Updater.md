@@ -1,0 +1,360 @@
+# OmniSearch Native Logic (With Auto-Updater)
+
+This script includes all the safety features of the standard version but adds an **Automatic Update Checker**.
+**Status:** Pending IT Permission. Use this only when authorized.
+
+## Features
+1.  **Auto-Update**: Checks `omniisearch.netlify.app/version.txt` for updates.
+2.  **Window Sizing**: Supports "fullscreen", "left", "right", "top", "bottom", "center", or "custom".
+3.  **Configurable Frequency**: "always", "daily", or "weekly".
+4.  **Tab Safety**: Uses the same safe "Tab 1" logic.
+
+## The Script
+
+```applescript
+on run {input, parameters}
+	-- 1. GET THE LINK: 
+	-- This takes the web address sent from your macOS Shortcut.
+	set targetURL to (item 1 of input) as string
+	
+	-- ==========================================
+	-- 2. USER SETTINGS (Edit these easily!)
+	-- ==========================================
+	-- Choose your layout mode:
+	-- "New Window Update Tab"  -> (Default) Opens in a dedicated window, updates the same tab
+	-- "New Window New Tab"     -> Opens in a dedicated window, opens a new tab every time
+	-- "Same Window New Tab"    -> Opens in your active Safari window, opens a new tab every time
+	-- "Same Window Update Tab" -> Opens in your active Safari window, updates the tab it creates
+	set openMode to "New Window Update Tab"
+	
+	-- Choose your window size (Only applies if a "New Window" mode is selected above):
+	-- "fullscreen", "left", "right", "top", "bottom", "center", or "custom"
+	set windowSize to "fullscreen"
+	
+	-- If you chose "custom" above, set your window coordinates here {Left, Top, Right, Bottom}:
+	set customBounds to {100, 100, 1200, 800}
+	
+	-- Set to 'true' to bring Safari to front, 'false' to update in background
+	set alwaysFocus to true
+	
+	-- Update Settings:
+	-- "always" (check every run - best for testing)
+	-- "daily"  (standard production setting)
+	-- "weekly" (minimum intrusion)
+	set updateFrequency to "always"
+	-- ==========================================
+	
+	-- 3. AUTO-UPDATE CHECK:
+	-- This block handles silent background version checks against the hosted version.txt
+	set currentVersion to 1.1
+	set dateCache to "/tmp/omnisearch_lastcheck.txt"
+	set todayDate to (current date)
+	set todayDateString to short date string of todayDate
+	
+	-- Retrieve ISO week identifier using shell for "weekly" frequency support
+	set weekIdentifier to do shell script "date +%G-W%V"
+	
+	set shouldCheck to false
+	
+	if updateFrequency is "always" then
+		set shouldCheck to true
+	else
+		try
+			set lastCheckSignature to do shell script "cat " & quoted form of dateCache
+			if updateFrequency is "daily" then
+				if lastCheckSignature is not equal to todayDateString then set shouldCheck to true
+			else if updateFrequency is "weekly" then
+				if lastCheckSignature is not equal to weekIdentifier then set shouldCheck to true
+			end if
+		on error
+			set shouldCheck to true
+		end try
+	end if
+	
+	if shouldCheck then
+		try
+			-- Pinging the server with a 2-second timeout.
+			-- We use 'awk' to extract just the first word (version number) from the first line of the new multi-line format.
+			set remoteVersionString to do shell script "curl -s --max-time 2 https://omniisearch.netlify.app/version.txt | head -n 1 | awk '{print $1}'"
+			
+			if remoteVersionString is not "" then
+				-- Handle decimal points safely across different system locales
+				set oldDelims to AppleScript's text item delimiters
+				set AppleScript's text item delimiters to "."
+				set remotePieces to text items of remoteVersionString
+				set AppleScript's text item delimiters to (character 2 of (0.5 as string))
+				set localizedRemoteVersionString to remotePieces as string
+				set AppleScript's text item delimiters to oldDelims
+				
+				set remoteVersion to localizedRemoteVersionString as real
+				
+				-- Compare versions
+				if remoteVersion > currentVersion then
+					-- Force the dialog to the absolute frontmost layer
+					tell application (path to frontmost application as text)
+						set dialogResult to display dialog "A new version of Omni Search (v" & remoteVersionString & ") is available!" & return & return & "You are currently running v" & currentVersion & ". Would you like to download the update?" with title "Omni Search Update" buttons {"Skip for now", "Open Website"} default button "Open Website"
+						
+						if button returned of dialogResult is "Open Website" then
+							-- Get Safari PID safely
+							tell application "System Events"
+								set currentSafariPID to unix id of process "Safari" as text
+							end tell
+							
+							-- Get Cache data to check if we can reuse the window
+							set cacheFile to "/tmp/omnisearch_id.txt"
+							set storedPID to ""
+							set storedID to 0
+							try
+								set cachedData to do shell script "cat " & quoted form of cacheFile
+								-- We use paragraph reading here to match the new cache format
+								set storedPID to paragraph 1 of cachedData
+								set storedID to (paragraph 2 of cachedData) as integer
+							end try
+
+							tell application "Safari"
+								set updateTargetFound to false
+								
+								-- Specific check to see if OmniSearch window is open to prevent work loss
+								if (storedPID is equal to currentSafariPID) and (storedID is not 0) then
+									try
+										if exists window id storedID then
+											tell window id storedID
+												set URL of current tab to "https://omniisearch.netlify.app"
+												set index to 1
+												set updateTargetFound to true
+											end tell
+										end if
+									end try
+								end if
+								
+								-- If no OmniSearch window, open a NEW window to protect active tabs
+								if not updateTargetFound then
+									make new document with properties {URL:"https://omniisearch.netlify.app"}
+								end if
+								activate
+							end tell
+							return input
+						end if
+					end tell
+				end if
+				
+				-- Update cache signature based on current frequency
+				if updateFrequency is "daily" then
+					do shell script "echo " & quoted form of todayDateString & " > " & quoted form of dateCache
+				else if updateFrequency is "weekly" then
+					do shell script "echo " & quoted form of weekIdentifier & " > " & quoted form of dateCache
+				end if
+			end if
+		on error
+			-- Silent fail on network error to allow search to proceed
+		end try
+	end if
+
+	-- 4. CLEAN THE LINK:
+	-- Some Apple links break if they have spaces. This swaps spaces for "+" 
+	-- so the website doesn't block the request.
+	if targetURL contains "marketingtools.apple.com" then
+		set oldDelims to AppleScript's text item delimiters
+		set AppleScript's text item delimiters to {"%2520", "%20", " "}
+		set urlPieces to text items of targetURL
+		set AppleScript's text item delimiters to "+"
+		set targetURL to urlPieces as string
+		set AppleScript's text item delimiters to oldDelims
+	end if
+	
+	-- 5. PREPARE MEMORY:
+	-- The script uses a tiny file to remember which Safari window and tab it used last.
+	set cacheFile to "/tmp/omnisearch_id.txt"
+	set foundWindow to false
+	set storedPID to ""
+	set storedID to 0
+	set storedURL to ""
+	set storedTabIndex to 0
+	
+	try
+		set cachedData to do shell script "cat " & quoted form of cacheFile
+		-- We read by paragraph so it's clean and safe
+		set storedPID to paragraph 1 of cachedData
+		set storedID to (paragraph 2 of cachedData) as integer
+		try
+			set storedURL to paragraph 3 of cachedData
+		end try
+		try
+			set storedTabIndex to (paragraph 4 of cachedData) as integer
+		end try
+	on error
+		-- No saved window found? No problem, we'll create one later.
+	end try
+	
+	-- 6. CHECK IF SAFARI IS OPEN:
+	-- This is a quick "pro" check to see if Safari is actually running.
+	tell application "System Events" to set safariRunning to exists process "Safari"
+	
+	-- If Safari is closed, wake it up now. If it's running, we'll activate it LATER
+	-- to prevent macOS from mistakenly switching to a fullscreen window.
+	if (safariRunning is false) then
+		tell application "Safari" to activate
+		-- DYNAMIC WAIT: Checks every 0.1s for Safari to wake up (max 5 seconds)
+		set wakeCounter to 0
+		repeat until safariRunning or wakeCounter > 50
+			tell application "System Events" to set safariRunning to exists process "Safari"
+			delay 0.1
+			set wakeCounter to wakeCounter + 1
+		end repeat
+	end if
+	
+	tell application "System Events" to set currentPID to unix id of process "Safari" as text
+	
+	tell application "Safari"
+		set foundWindow to false
+		set tabReused to false
+		
+		-- 7. TRY TO REUSE EXISTING WINDOW/TAB:
+		-- If we have a saved window, let's try to update or append to it based on your settings.
+		
+		-- Special Case: "Same Window New Tab" -> Just blindly append to current active window
+		if openMode is "Same Window New Tab" and (count of windows) > 0 then
+			tell window 1
+				make new tab at end of tabs with properties {URL:targetURL}
+				set current tab to last tab
+				if alwaysFocus is true then
+					set visible to true
+					set miniaturized to false
+					set index to 1
+				end if
+			end tell
+			set tabReused to true
+			
+		-- All other modes look for the previously tracked window
+		else if (storedPID is equal to currentPID) then
+			try
+				if exists window id storedID then
+					tell window id storedID
+						set foundWindow to true
+						
+						if openMode is "New Window New Tab" then
+							make new tab at end of tabs with properties {URL:targetURL}
+							set current tab to last tab
+							set tabReused to true
+							
+						else if openMode contains "Update Tab" then
+							-- PRIMARY (URL FINGERPRINTING): Scan all tabs for the exact URL
+							if storedURL is not "" then
+								set totalTabs to count of tabs
+								repeat with i from 1 to totalTabs
+									try
+										if URL of tab i is equal to storedURL then
+											set URL of tab i to targetURL
+											set current tab to tab i
+											set tabReused to true
+											exit repeat
+										end if
+									end try
+								end repeat
+							end if
+							
+							-- FALLBACK (TAB INDEX): If URL changed, reuse the last known Tab Index
+							if not tabReused and storedTabIndex > 0 then
+								if (count of tabs) ≥ storedTabIndex then
+									try
+										set URL of tab storedTabIndex to targetURL
+										set current tab to tab storedTabIndex
+										set tabReused to true
+									end try
+								end if
+							end if
+						end if
+						
+						-- Pull window out of the dock if it was minimized.
+						if tabReused and alwaysFocus is true then
+							set visible to true
+							set miniaturized to false
+							set index to 1
+							tell application "Safari" to activate
+						end if
+					end tell
+				end if
+			on error
+				set foundWindow to false
+			end try
+		end if
+		
+		-- 8. CREATE NEW WINDOW OR TAB (If first run, or tab/window was closed):
+		-- If we couldn't find the old window or need a fresh one, create it here.
+		if not tabReused then
+			tell application "Safari" to activate
+			
+			if openMode contains "Same Window" and (count of windows) > 0 then
+				-- User wants it in their current active window
+				tell window 1
+					make new tab at end of tabs with properties {URL:targetURL}
+					set current tab to last tab
+				end tell
+				set createdNewWindow to false
+			else
+				-- User wants a dedicated window (or no windows exist at all)
+				set initialWindowCount to count of windows
+				make new document with properties {URL:targetURL}
+				set createdNewWindow to true
+				
+				-- Wait a moment for the window to actually appear before resizing.
+				set timeoutCounter to 0
+				repeat while (count of windows) is initialWindowCount
+					delay 0.1
+					set timeoutCounter to timeoutCounter + 1
+					if timeoutCounter > 15 then exit repeat
+				end repeat
+				delay 0.1
+			end if
+			
+			-- Only resize if we actually spawned a brand new standalone window!
+			if createdNewWindow then
+				try
+					-- Ask the Mac how big the screen is to calculate the position.
+					tell application "Finder" to set {dL, dT, dR, dB} to bounds of window of desktop
+					if windowSize is "left" then
+						set bounds of window 1 to {0, 25, dR / 2, dB}
+					else if windowSize is "right" then
+						set bounds of window 1 to {dR / 2, 25, dR, dB}
+					else if windowSize is "top" then
+						set bounds of window 1 to {0, 25, dR, dB / 2}
+					else if windowSize is "bottom" then
+						set bounds of window 1 to {0, dB / 2, dR, dB}
+					else if windowSize is "center" then
+						set bounds of window 1 to {dR * 0.15, dB * 0.15, dR * 0.85, dB * 0.85}
+					else if windowSize is "custom" then
+						set bounds of window 1 to customBounds
+					else -- Default to Fullscreen
+						set bounds of window 1 to {0, 25, dR, dB}
+					end if
+				end try
+			end if
+		end if
+		
+		-- 9. SAVE EXACT WINDOW, URL & TAB STATE:
+		-- Updates the memory with the Window ID, URL Fingerprint, and Tab Index for next time.
+		try
+			set activeWinID to id of window 1
+			set activeTabIndex to index of current tab of window 1
+			do shell script "echo " & quoted form of currentPID & " > " & quoted form of cacheFile
+			do shell script "echo " & quoted form of (activeWinID as string) & " >> " & quoted form of cacheFile
+			do shell script "echo " & quoted form of targetURL & " >> " & quoted form of cacheFile
+			do shell script "echo " & quoted form of (activeTabIndex as string) & " >> " & quoted form of cacheFile
+		end try
+	end tell
+	
+	-- 10. JUMP TO FRONT:
+	-- Final push to make sure Safari is the window you are looking at.
+	if alwaysFocus is true then
+		tell application "Safari" to activate
+		try
+			tell application "System Events" to tell process "Safari"
+				set frontmost to true
+				perform action "AXRaise" of window 1
+			end tell
+		end try
+	end if
+	
+	return input
+end run
+```
