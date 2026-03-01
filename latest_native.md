@@ -157,7 +157,7 @@ on run {input, parameters}
 					
 					-- Question 3: Select Search Engines
 					set engineOptions to {"1. Apple Marketing 📺", "2. Apple Music 🎵", "3. Google 🔍"}
-					set chosenEnginesList to choose from list engineOptions with prompt ("Select the search engines you want to enable:" & return) default items {item 1 of engineOptions} with title "OmniSearch Setup (4/5)" with multiple selections allowed
+					set chosenEnginesList to choose from list engineOptions with prompt ("Select the search engines you want to enable:" & return & "(Hold Command ⌘ to select multiple)" & return) default items {item 1 of engineOptions} with title "OmniSearch Setup (4/5)" with multiple selections allowed
 					
 					set cleanTargetList to {}
 					if chosenEnginesList is not false then
@@ -191,7 +191,7 @@ on run {input, parameters}
 								set optCounter to optCounter + 1
 							end repeat
 							
-							set chosenLocales to choose from list locOptions with prompt ("Select regions for " & engName & ":" & return) default items {item 2 of locOptions} with title "OmniSearch Setup (5/5)" with multiple selections allowed
+							set chosenLocales to choose from list locOptions with prompt ("Select regions for " & engName & ":" & return & "(Hold Command ⌘ to select multiple)" & return) default items {item 2 of locOptions} with title "OmniSearch Setup (5/5)" with multiple selections allowed
 							
 							if chosenLocales is not false then
 								set addAll to false
@@ -316,6 +316,26 @@ on run {input, parameters}
 		-- ==========================================
 		if isDirectURL then
 			set targetURL to searchTerm
+			
+			-- FIX FOR INTERLINKED: Safely encode special characters (&, ?, +) in the prompt
+			if targetURL contains "interlinked.apple.com/chat?prompt=" then
+				set oldDelims to AppleScript's text item delimiters
+				set AppleScript's text item delimiters to "?prompt="
+				set baseURL to text item 1 of targetURL
+				set promptText to text item 2 of targetURL
+				
+				set targetChars to {" ", "?", "&", "+"}
+				set replaceChars to {"%20", "%3F", "%26", "%2B"}
+				repeat with i from 1 to count of targetChars
+					set AppleScript's text item delimiters to item i of targetChars
+					set tempPieces to text items of promptText
+					set AppleScript's text item delimiters to item i of replaceChars
+					set promptText to tempPieces as string
+				end repeat
+				
+				set targetURL to baseURL & "?prompt=" & promptText
+				set AppleScript's text item delimiters to oldDelims
+			end if
 		else
 			set finalChosenTarget to ""
 			
