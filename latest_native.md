@@ -250,38 +250,40 @@ on run {input, parameters}
 						if tgt starts with "Apple Music" then set end of validMus to tgt as string
 						if tgt starts with "Google" then set end of validGoog to tgt as string
 					end repeat
-					
-					set finishText to "Setup Complete! 🎉" & return & return
-					set finishText to finishText & "Your settings have been saved to:" & return & "Home > OmniSearch > OmniSearch_Preferences.txt" & return & return
-					set finishText to finishText & "💡 MAGIC SHORTCUTS:" & return
-					set finishText to finishText & "• Search 'omnisettings' to quickly open this file." & return
-					set finishText to finishText & "• Search 'omnireset' to run this setup wizard again." & return & return
-					set finishText to finishText & "A copy of these details has been saved to your Desktop."
-					
-					set desktopFolder to POSIX path of (path to desktop folder)
-					set detailsFile to desktopFolder & "OmniSearch Setup Details.txt"
-					
-					set fileContent to "=============================================" & return & ¬
-						"         OmniSearch Configuration            " & return & ¬
-						"=============================================" & return & return & ¬
-						"The preferences file for OmniSearch is saved in:" & return & ¬
-						"~/OmniSearch/OmniSearch_Preferences.txt" & return & return & ¬
-						"---------------------------------------------" & return & ¬
-						"To open them directly from the shortcut:" & return & ¬
-						"🔍 Search 'omnisettings'" & return & return & ¬
-						"To reset it:" & return & ¬
-						"🗑️ Delete the preference file from the path OR" & return & ¬
-						"🔍 Search 'omnireset' in the shortcut directly" & return & ¬
-						"============================================="
-						
-					do shell script "echo " & quoted form of fileContent & " > " & quoted form of detailsFile
-					
-					display dialog finishText with title "OmniSearch Setup Complete" buttons {"Awesome!"} default button "Awesome!" with icon note
 				end if
 				
 				if (count of validMkt) is 0 then set end of validMkt to "Apple Marketing (en_US) 🇺🇸"
 				if (count of validMus) is 0 then set end of validMus to "Apple Music (en_US) 🇺🇸"
 				if (count of validGoog) is 0 then set end of validGoog to "Google (en_US) 🇺🇸"
+				
+				set finishText to "Setup Complete! 🎉" & return & return
+				set finishText to finishText & "Your settings have been saved to:" & return & "Home > OmniSearch > OmniSearch_Preferences.txt" & return & return
+				set finishText to finishText & "💡 MAGIC SHORTCUTS:" & return
+				set finishText to finishText & "• Search 'omnisettings' to quickly open this file." & return
+				set finishText to finishText & "• Search 'omnireset' to run this setup wizard again." & return & return
+				set finishText to finishText & "A copy of these details has been saved to your Desktop."
+				
+				set desktopFolder to POSIX path of (path to desktop folder)
+				set detailsFile to desktopFolder & "OmniSearch Setup Details.txt"
+				
+				set fileContent to "=============================================" & return & ¬
+					"         OmniSearch Configuration            " & return & ¬
+					"=============================================" & return & return & ¬
+					"The preferences file for OmniSearch is saved in:" & return & ¬
+					"~/OmniSearch/OmniSearch_Preferences.txt" & return & return & ¬
+					"You can go to this file by pressing ⌘ Shift G" & return & ¬
+					"and pasting the path in it." & return & return & ¬
+					"---------------------------------------------" & return & ¬
+					"To open the preferences:" & return & ¬
+					"🔍 Search 'omnisettings' directly in the shortcut" & return & return & ¬
+					"To reset it:" & return & ¬
+					"🔍 Search 'omnireset' in the shortcut directly" & return & return & ¬
+					"Or 🗑️ Delete the preferences file from the path shown above" & return & return & ¬
+					"============================================="
+					
+				do shell script "echo " & quoted form of fileContent & " > " & quoted form of detailsFile
+				
+				display dialog finishText with title "OmniSearch Setup Complete" buttons {"Awesome!"} default button "Awesome!" with icon note
 				
 				set oldDelims to AppleScript's text item delimiters
 				set AppleScript's text item delimiters to "|"
