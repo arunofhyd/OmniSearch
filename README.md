@@ -17,34 +17,12 @@ Omni Search is a powerful, native macOS Shortcut utility designed to eliminate t
 
 ---
 
-## Features
-
-### Core Experience (v1.0)
-- **Persistent Window**: Reuses a single, dedicated Safari window (Tab 1) to keep your workspace clean.
-- **PID Tracking**: Intelligently tracks Safari's Process ID to handle application restarts without losing the search context.
-- **Race Condition Handling**: optimized AppleScript logic ensures window creation and focus are instantaneous and bug-free.
-
-### Advanced Capabilities (v1.1)
-- **Auto-Updater**: Optional background checker that notifies you of new versions silently.
-- **WAF Bypass**: Automatic URL encoding for specific domains to prevent 403 Forbidden errors on enterprise firewalls.
-- **Hardened Session**: Improved window ID caching for maximum reliability.
-
----
-
 ## Installation
 
 ### Prerequisites
 - macOS Monterey (12.0) or later.
 - Safari (Default Browser).
 - "Allow Running Scripts" enabled in Shortcuts preferences.
-
-### Setup
-1.  **Install the Shortcut**: Click one of the links above to add Omni Search to your Shortcuts app.
-2.  **Assign a Hotkey**:
-    *   Open Shortcuts.app.
-    *   Right-click "Omni Search" -> "Add Keyboard Shortcut".
-    *   Recommended: `Cmd + Shift + S` or `Option + Space`.
-3.  **Grant Permissions**: On the first run, allow the shortcut to access Safari and System Events.
 
 ---
 
@@ -55,18 +33,6 @@ Omni Search is a powerful, native macOS Shortcut utility designed to eliminate t
 3.  **Search**: Safari instantly focuses the Omni Search window with your results.
 
 *Note: If no text is selected, it can be configured to prompt for input.*
-
----
-
-## Technical Details
-
-The core logic relies on `AppleScript` for window management.
-
-- **Window Management**: Uses `window id` and `unix id` to persist sessions.
-- **Cache**: Stores session data in `/tmp/omnisearch_id.txt`.
-- **Sanitization**: Form-encodes URLs for strict WAF compliance.
-
-See [omnisearch_native.md](./omnisearch_native.md) for the full source code.
 
 ---
 
