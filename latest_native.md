@@ -19,14 +19,14 @@ on run {input, parameters}
 		
 		-- MAGIC KEYWORDS: Super easy user management
 		set isResetCommand to false
-		if searchTerm is "!settings" then
+		if searchTerm contains "~settings" then
 			try
 				do shell script "open " & quoted form of prefsFile
 			on error
-				display dialog "Preferences file not found. Try searching for '!reset' to generate it." buttons {"OK"} default button "OK"
+				display dialog "Preferences file not found. Try searching for '~reset' to generate it." buttons {"OK"} default button "OK"
 			end try
 			return input
-		else if searchTerm is "!reset" then
+		else if searchTerm contains "~reset" then
 			try
 				do shell script "rm " & quoted form of prefsFile
 			end try
@@ -254,8 +254,14 @@ on run {input, parameters}
 					set finishText to "Setup Complete! 🎉" & return & return
 					set finishText to finishText & "Your settings have been saved to:" & return & "Home > OmniSearch > OmniSearch_Preferences.txt" & return & return
 					set finishText to finishText & "💡 MAGIC SHORTCUTS:" & return
-					set finishText to finishText & "• Search '!settings' to quickly open this file." & return
-					set finishText to finishText & "• Search '!reset' to run this setup wizard again."
+					set finishText to finishText & "• Search '~settings' to quickly open this file." & return
+					set finishText to finishText & "• Search '~reset' to run this setup wizard again." & return & return
+					set finishText to finishText & "A copy of these details has been saved to your Desktop."
+					
+					set desktopFolder to POSIX path of (path to desktop folder)
+					set detailsFile to desktopFolder & "OmniSearch Setup Details.txt"
+					do shell script "echo " & quoted form of finishText & " > " & quoted form of detailsFile
+					
 					display dialog finishText with title "OmniSearch Setup Complete" buttons {"Awesome!"} default button "Awesome!" with icon note
 				end if
 				
@@ -281,7 +287,7 @@ on run {input, parameters}
 			do shell script "echo " & quoted form of prefData & " > " & quoted form of prefsFile
 		end if
 		
-		-- If they only typed !reset, we stop the script here so it doesn't search safari for "!reset"
+		-- If they only typed ~reset, we stop the script here so it doesn't search safari for "~reset"
 		if isResetCommand then return input
 		
 		-- ==========================================
@@ -323,7 +329,7 @@ on run {input, parameters}
 		set userSavedTargetsList to validMkt & validMus & validGoog
 		set customBounds to {100, 100, 1200, 800}
 		set alwaysFocus to true
-		set targetURL to "" 
+		set targetURL to ""
 		
 		-- ==========================================
 		-- 5. SMART TARGET MENU & DYNAMIC URL GENERATOR
@@ -488,7 +494,6 @@ on run {input, parameters}
 			try
 				set storedTabIndex to (paragraph 4 of cachedData) as integer
 			end try
-		on error
 		end try
 		
 		tell application "System Events" to set safariRunning to exists process "Safari"
@@ -613,7 +618,7 @@ on run {input, parameters}
 				set activeWinID to id of window 1
 				set activeTabIndex to index of current tab of window 1
 			end try
-		end tell 
+		end tell
 		
 		if activeWinID is not 0 then
 			try
