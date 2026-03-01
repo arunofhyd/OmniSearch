@@ -22,14 +22,14 @@ on run {input, parameters}
 		
 		-- MAGIC KEYWORDS: Super easy user management
 		set isResetCommand to false
-		if searchTerm contains "!settings" then
+		if searchTerm contains "omnisettings" then
 			try
 				do shell script "open " & quoted form of prefsFile
 			on error
-				display dialog "Preferences file not found. Try searching for '!reset' to generate it." buttons {"OK"} default button "OK"
+				display dialog "Preferences file not found. Try searching for 'omnireset' to generate it." buttons {"OK"} default button "OK"
 			end try
 			return input
-		else if searchTerm contains "!reset" then
+		else if searchTerm contains "omnireset" then
 			try
 				do shell script "rm " & quoted form of prefsFile
 			end try
@@ -270,13 +270,27 @@ on run {input, parameters}
 					set finishText to "Setup Complete! 🎉" & return & return
 					set finishText to finishText & "Your settings have been saved to:" & return & "Home > OmniSearch > OmniSearch_Preferences.txt" & return & return
 					set finishText to finishText & "💡 MAGIC SHORTCUTS:" & return
-					set finishText to finishText & "• Search '!settings' to quickly open this file." & return
-					set finishText to finishText & "• Search '!reset' to run this setup wizard again." & return & return
+					set finishText to finishText & "• Search 'omnisettings' to quickly open this file." & return
+					set finishText to finishText & "• Search 'omnireset' to run this setup wizard again." & return & return
 					set finishText to finishText & "A copy of these details has been saved to your Desktop."
 					
 					set desktopFolder to POSIX path of (path to desktop folder)
 					set detailsFile to desktopFolder & "OmniSearch Setup Details.txt"
-					do shell script "echo " & quoted form of finishText & " > " & quoted form of detailsFile
+					
+					set fileContent to "=============================================" & return & ¬
+						"         OmniSearch Configuration            " & return & ¬
+						"=============================================" & return & return & ¬
+						"The preferences file for OmniSearch is saved in:" & return & ¬
+						"~/OmniSearch/OmniSearch_Preferences.txt" & return & return & ¬
+						"---------------------------------------------" & return & ¬
+						"To open them directly from the shortcut:" & return & ¬
+						"🔍 Search 'omnisettings'" & return & return & ¬
+						"To reset it:" & return & ¬
+						"🗑️ Delete the preference file from the path OR" & return & ¬
+						"🔍 Search 'omnireset' in the shortcut directly" & return & ¬
+						"============================================="
+						
+					do shell script "echo " & quoted form of fileContent & " > " & quoted form of detailsFile
 					
 					display dialog finishText with title "OmniSearch Setup Complete" buttons {"Awesome!"} default button "Awesome!" with icon note
 				end if
@@ -304,7 +318,7 @@ on run {input, parameters}
 			do shell script "echo " & quoted form of prefData & " > " & quoted form of prefsFile
 		end if
 		
-		-- Stop script if it was a !reset command
+		-- Stop script if it was a omnireset command
 		if isResetCommand then return input
 		
 		-- ==========================================
