@@ -6,71 +6,88 @@
 on run {input, parameters}
 	with timeout of 300 seconds
 		-- 1. GET THE INPUT: 
-		-- This takes the URL-encoded search term sent from your macOS Shortcut.
 		set searchTerm to (item 1 of input) as string
 		
 		-- ==========================================
-		-- 1.5. TERM EXTRACTOR (Handles full URLs passed from existing shortcuts)
+		-- 2. FILE PATHS & MAGIC KEYWORDS
+		-- ==========================================
+		-- Create a visible, non-sandboxed folder in the Home directory
+		set homeFolder to POSIX path of (path to home folder)
+		set omniFolder to homeFolder & "OmniSearch/"
+		do shell script "mkdir -p " & quoted form of omniFolder
+		set prefsFile to omniFolder & "OmniSearch_Preferences.txt"
+		
+		-- MAGIC KEYWORDS: Super easy user management
+		set isResetCommand to false
+		if searchTerm is "!settings" then
+			try
+				do shell script "open " & quoted form of prefsFile
+			on error
+				display dialog "Preferences file not found. Try searching for '!reset' to generate it." buttons {"OK"} default button "OK"
+			end try
+			return input
+		else if searchTerm is "!reset" then
+			try
+				do shell script "rm " & quoted form of prefsFile
+			end try
+			set isResetCommand to true
+		end if
+		
+		-- ==========================================
+		-- 3. TERM EXTRACTOR (Handles full URLs passed from existing shortcuts)
 		-- ==========================================
 		set preSelectedEngine to ""
 		set isDirectURL to false
 		set oldDelims to AppleScript's text item delimiters
 		
-		-- Logic to handle specific service routing
-		if searchTerm contains "marketingtools.apple.com" or searchTerm contains "applemediaservices.com" then
-			set preSelectedEngine to "Apple Marketing"
-			if searchTerm contains "?q=" then
-				set AppleScript's text item delimiters to "?q="
-			else if searchTerm contains "&q=" then
-				set AppleScript's text item delimiters to "&q="
+		if not isResetCommand then
+			if searchTerm contains "marketingtools.apple.com" or searchTerm contains "applemediaservices.com" then
+				set preSelectedEngine to "Apple Marketing"
+				if searchTerm contains "?q=" then
+					set AppleScript's text item delimiters to "?q="
+				else if searchTerm contains "&q=" then
+					set AppleScript's text item delimiters to "&q="
+				end if
+				try
+					set searchTerm to text item 2 of searchTerm
+				end try
+			else if searchTerm contains "music.apple.com" then
+				set preSelectedEngine to "Apple Music"
+				if searchTerm contains "?term=" then
+					set AppleScript's text item delimiters to "?term="
+				else if searchTerm contains "&term=" then
+					set AppleScript's text item delimiters to "&term="
+				end if
+				try
+					set searchTerm to text item 2 of searchTerm
+				end try
+			else if searchTerm contains "google.com/search" then
+				set preSelectedEngine to "Google"
+				if searchTerm contains "?q=" then
+					set AppleScript's text item delimiters to "?q="
+				else if searchTerm contains "&q=" then
+					set AppleScript's text item delimiters to "&q="
+				end if
+				try
+					set tempTerm to text item 2 of searchTerm
+					set AppleScript's text item delimiters to "&"
+					set searchTerm to text item 1 of tempTerm
+				end try
+			else if searchTerm starts with "http" then
+				set isDirectURL to true
 			end if
-			try
-				set searchTerm to text item 2 of searchTerm
-			end try
-		else if searchTerm contains "music.apple.com" then
-			set preSelectedEngine to "Apple Music"
-			if searchTerm contains "?term=" then
-				set AppleScript's text item delimiters to "?term="
-			else if searchTerm contains "&term=" then
-				set AppleScript's text item delimiters to "&term="
-			end if
-			try
-				set searchTerm to text item 2 of searchTerm
-			end try
-		else if searchTerm contains "google.com/search" then
-			-- EXCLUSIVE: Only trigger region logic for Google SEARCH
-			set preSelectedEngine to "Google"
-			if searchTerm contains "?q=" then
-				set AppleScript's text item delimiters to "?q="
-			else if searchTerm contains "&q=" then
-				set AppleScript's text item delimiters to "&q="
-			end if
-			try
-				set tempTerm to text item 2 of searchTerm
-				set AppleScript's text item delimiters to "&"
-				set searchTerm to text item 1 of tempTerm
-			end try
-		else if searchTerm starts with "http" then
-			-- BYPASS: If it's a URL but not Search/Marketing/Music, open it directly!
-			-- This handles Google Maps, Wikipedia, etc., without region conflicts.
-			set isDirectURL to true
 		end if
 		set AppleScript's text item delimiters to oldDelims
 		
 		-- ==========================================
-		-- 2. ONE-TIME SETUP WIZARD & USER PREFS
+		-- 4. ONE-TIME SETUP WIZARD & USER PREFS
 		-- ==========================================
-		-- Save to a visible file in Documents for easy access
-		set docsFolder to POSIX path of (path to documents folder)
-		if docsFolder does not end with "/" then set docsFolder to docsFolder & "/"
-		set prefsFile to docsFolder & "OmniSearch_Preferences.txt"
-		
 		set isFirstRun to false
 		
-		-- DATA DRIVEN LOCALE LIST (Pruned as requested)
+		-- DATA DRIVEN LOCALE LIST
 		set localeData to {¬
 			"en_US|🇺🇸", "en_GB|🇬🇧", "en_IN|🇮🇳", "en_CA|🇨🇦", "en_AU|🇦🇺", "en_NZ|🇳🇿", ¬
-			"en_ZA|🇿🇦", "en_SG|🇸🇬", "ar_SA|🇸🇦", "hi_IN|🇮🇳"}
+			"en_ZA|🇿🇦", "ar_SA|🇸🇦", "hi_IN|🇮🇳"}
 		
 		-- Default Variables
 		set openMode to "New Window Update Tab"
@@ -79,58 +96,54 @@ on run {input, parameters}
 		set musTargets to ""
 		set googleTargets to ""
 		
-		try
-			-- Check if file exists and read contents
-			do shell script "test -f " & quoted form of prefsFile
-			set cachedPrefs to do shell script "cat " & quoted form of prefsFile
-			
-			if cachedPrefs is "" then
-				set isFirstRun to true
-			else
-				set prefLines to paragraphs of cachedPrefs
-				set foundData to false
-				
-				-- Parse the Key: Value structure safely
-				repeat with p in prefLines
-					if p starts with "Mode: " then
-						set openMode to text 7 thru -1 of p
-						set foundData to true
-					else if p starts with "Size: " then
-						set windowSize to text 7 thru -1 of p
-					else if p starts with "Apple Marketing: " then
-						set mktTargets to text 18 thru -1 of p
-					else if p starts with "Apple Music: " then
-						set musTargets to text 14 thru -1 of p
-					else if p starts with "Google: " then
-						set googleTargets to text 9 thru -1 of p
-					end if
-				end repeat
-				
-				-- If the file didn't contain core keys, trigger setup
-				if not foundData then set isFirstRun to true
-			end if
-		on error
+		if isResetCommand then
 			set isFirstRun to true
-		end try
+		else
+			try
+				set cachedPrefs to do shell script "cat " & quoted form of prefsFile
+				if cachedPrefs is "" then
+					set isFirstRun to true
+				else
+					set prefLines to paragraphs of cachedPrefs
+					set foundData to false
+					
+					repeat with p in prefLines
+						if p starts with "Mode: " then
+							set openMode to text 7 thru -1 of p
+							set foundData to true
+						else if p starts with "Size: " then
+							set windowSize to text 7 thru -1 of p
+						else if p starts with "Apple Marketing: " then
+							set mktTargets to text 18 thru -1 of p
+						else if p starts with "Apple Music: " then
+							set musTargets to text 14 thru -1 of p
+						else if p starts with "Google: " then
+							set googleTargets to text 9 thru -1 of p
+						end if
+					end repeat
+					
+					if not foundData then set isFirstRun to true
+				end if
+			on error
+				set isFirstRun to true
+			end try
+		end if
 		
 		-- ==========================================
 		-- SETUP WIZARD
 		-- ==========================================
 		if isFirstRun then
 			tell application (path to frontmost application as text)
-				-- Welcome Screen
 				set welcomeText to "Welcome to OmniSearch! 🚀" & return & return
 				set welcomeText to welcomeText & "Let's quickly set up your preferences."
 				set welcomeResponse to display dialog welcomeText with title "OmniSearch Setup (1/5)" buttons {"Skip (Use Defaults)", "Let's Go!"} default button "Let's Go!" with icon note
 				
-				-- Base Defaults initialized for Skip
 				set validMkt to {"Apple Marketing (en_US) 🇺🇸"}
 				set validMus to {"Apple Music (en_US) 🇺🇸"}
 				set validGoog to {"Google (en_US) 🇺🇸"}
 				
 				if button returned of welcomeResponse is "Let's Go!" then
-					-- Question 1: Open Mode
-					set modeOptions to {"1. New Window Update Tab (Default) 🪟", "2. New Window New Tab 🪟", "3. Same Window New Tab 📑", "4. Same Window Update Tab 🔄"}
+					set modeOptions to {"1. New Window Update Tab (Default) 🪟", "2. New Window New Tab 🗂️", "3. Same Window New Tab ➕", "4. Same Window Update Tab 🎯"}
 					set chosenModeList to choose from list modeOptions with prompt ("How would you like OmniSearch to open your searches?" & return) default items {item 1 of modeOptions} with title "OmniSearch Setup (2/5)"
 					if chosenModeList is not false then
 						set chosenMode to item 1 of chosenModeList
@@ -140,7 +153,6 @@ on run {input, parameters}
 						if chosenMode contains "Same Window Update Tab" then set openMode to "Same Window Update Tab"
 					end if
 					
-					-- Question 2: Window Size 
 					if openMode contains "New Window" then
 						set sizeOptions to {"1. Fullscreen 🖥️", "2. Left Half ⬅️", "3. Right Half ➡️", "4. Top Half ⬆️", "5. Bottom Half ⬇️", "6. Center 🎯"}
 						set chosenSizeList to choose from list sizeOptions with prompt ("Choose your preferred window size:" & return) default items {item 1 of sizeOptions} with title "OmniSearch Setup (3/5)"
@@ -155,7 +167,6 @@ on run {input, parameters}
 						end if
 					end if
 					
-					-- Question 3: Select Search Engines
 					set engineOptions to {"1. Apple Marketing 📺", "2. Apple Music 🎵", "3. Google 🔍"}
 					set chosenEnginesList to choose from list engineOptions with prompt ("Select the search engines you want to enable:" & return & "(Hold Command ⌘ to select multiple)" & return) default items {item 1 of engineOptions} with title "OmniSearch Setup (4/5)" with multiple selections allowed
 					
@@ -165,22 +176,28 @@ on run {input, parameters}
 							set oldDelims to AppleScript's text item delimiters
 							set AppleScript's text item delimiters to " "
 							set engPieces to text items of chosenEng
-							-- Reconstruct name without the leading number and trailing icon
 							set engName to items 2 thru -2 of engPieces as string
 							set AppleScript's text item delimiters to oldDelims
 							
-							-- Build locale options specifically for this engine
-							set totalLocales to count of localeData
+							set filteredLocaleData to {}
+							repeat with locItem in localeData
+								if (engName contains "Apple") and (locItem contains "hi_IN") then
+									-- Skip hi_IN for Apple services
+								else
+									set end of filteredLocaleData to locItem
+								end if
+							end repeat
+							
+							set totalLocales to count of filteredLocaleData
 							set locOptions to {"0. [ADD ALL REGIONS] 🌍"}
 							set optCounter to 1
-							repeat with locItem in localeData
+							repeat with locItem in filteredLocaleData
 								set oldDelims to AppleScript's text item delimiters
 								set AppleScript's text item delimiters to "|"
 								set locCode to text item 1 of locItem
 								set locFlag to text item 2 of locItem
 								set AppleScript's text item delimiters to oldDelims
 								
-								-- Dynamic Logic: 01. if >9 items, else 1.
 								if optCounter is 1 and totalLocales > 9 then
 									set numPrefix to "01"
 								else
@@ -200,8 +217,7 @@ on run {input, parameters}
 								end repeat
 								
 								if addAll then
-									-- Add every locale for this engine
-									repeat with locItem in localeData
+									repeat with locItem in filteredLocaleData
 										set oldDelims to AppleScript's text item delimiters
 										set AppleScript's text item delimiters to "|"
 										set pureCode to text item 1 of locItem
@@ -210,7 +226,6 @@ on run {input, parameters}
 										set end of cleanTargetList to engName & " (" & pureCode & ") " & pureFlag
 									end repeat
 								else
-									-- Add only selected
 									repeat with cLoc in chosenLocales
 										set oldDelims to AppleScript's text item delimiters
 										set AppleScript's text item delimiters to ". "
@@ -227,7 +242,6 @@ on run {input, parameters}
 						end repeat
 					end if
 					
-					-- Parse selected engines into groups
 					set validMkt to {}
 					set validMus to {}
 					set validGoog to {}
@@ -237,36 +251,41 @@ on run {input, parameters}
 						if tgt starts with "Google" then set end of validGoog to tgt as string
 					end repeat
 					
-					display dialog "Setup Complete! 🎉" & return & return & "Your preferences have been saved to your Documents folder." & return & return & "💡 TIP: Delete 'OmniSearch_Preferences.txt' in your Documents folder to reset your preferences at any time." with title "OmniSearch Setup Complete" buttons {"Start Searching"} default button "Start Searching" with icon note
+					set finishText to "Setup Complete! 🎉" & return & return
+					set finishText to finishText & "Your settings have been saved to:" & return & "Home > OmniSearch > OmniSearch_Preferences.txt" & return & return
+					set finishText to finishText & "💡 MAGIC SHORTCUTS:" & return
+					set finishText to finishText & "• Search '!settings' to quickly open this file." & return
+					set finishText to finishText & "• Search '!reset' to run this setup wizard again."
+					display dialog finishText with title "OmniSearch Setup Complete" buttons {"Awesome!"} default button "Awesome!" with icon note
 				end if
 				
-				-- Ensure Fallbacks even if they deselected everything to prevent breaks
 				if (count of validMkt) is 0 then set end of validMkt to "Apple Marketing (en_US) 🇺🇸"
 				if (count of validMus) is 0 then set end of validMus to "Apple Music (en_US) 🇺🇸"
 				if (count of validGoog) is 0 then set end of validGoog to "Google (en_US) 🇺🇸"
 				
-				-- Join strings for saving
 				set oldDelims to AppleScript's text item delimiters
 				set AppleScript's text item delimiters to "|"
 				set mktTargets to validMkt as string
 				set musTargets to validMus as string
 				set googleTargets to validGoog as string
 				set AppleScript's text item delimiters to oldDelims
-				
-				-- Save neatly structured settings
-				set prefData to "[OMNISEARCH CONFIGURATION]" & return & ¬
-					"Mode: " & openMode & return & ¬
-					"Size: " & windowSize & return & ¬
-					"Apple Marketing: " & mktTargets & return & ¬
-					"Apple Music: " & musTargets & return & ¬
-					"Google: " & googleTargets
-				do shell script "echo " & quoted form of prefData & " > " & quoted form of prefsFile
-			end tell
+			end tell -- END TELL BLOCK
+			
+			set prefData to "[OMNISEARCH CONFIGURATION]" & return & ¬
+				"Mode: " & openMode & return & ¬
+				"Size: " & windowSize & return & ¬
+				"Apple Marketing: " & mktTargets & return & ¬
+				"Apple Music: " & musTargets & return & ¬
+				"Google: " & googleTargets
+			
+			do shell script "echo " & quoted form of prefData & " > " & quoted form of prefsFile
 		end if
+		
+		-- If they only typed !reset, we stop the script here so it doesn't search safari for "!reset"
+		if isResetCommand then return input
 		
 		-- ==========================================
 		-- DATA VALIDATION & FALLBACK LOGIC
-		-- Handles missing data if user messed up the text file manually
 		-- ==========================================
 		set validMkt to {}
 		set validMus to {}
@@ -278,7 +297,6 @@ on run {input, parameters}
 		if mktTargets is not "" then
 			set tempItems to text items of mktTargets
 			repeat with tgt in tempItems
-				-- Only include complete locales containing parentheses
 				if tgt contains "(" and tgt contains ")" then set end of validMkt to tgt as string
 			end repeat
 		end if
@@ -298,26 +316,22 @@ on run {input, parameters}
 		end if
 		set AppleScript's text item delimiters to oldDelims
 		
-		-- If user deleted all complete locales for a service, default to US
 		if (count of validMkt) is 0 then set end of validMkt to "Apple Marketing (en_US) 🇺🇸"
 		if (count of validMus) is 0 then set end of validMus to "Apple Music (en_US) 🇺🇸"
 		if (count of validGoog) is 0 then set end of validGoog to "Google (en_US) 🇺🇸"
 		
-		-- Create the master unified targets list for the active menu
 		set userSavedTargetsList to validMkt & validMus & validGoog
-		
 		set customBounds to {100, 100, 1200, 800}
 		set alwaysFocus to true
-		set targetURL to "" -- Initialize empty
-		-- ==========================================
+		set targetURL to "" 
 		
 		-- ==========================================
-		-- 3. SMART TARGET MENU & DYNAMIC URL GENERATOR
+		-- 5. SMART TARGET MENU & DYNAMIC URL GENERATOR
 		-- ==========================================
 		if isDirectURL then
 			set targetURL to searchTerm
 			
-			-- FIX FOR INTERLINKED: Safely encode special characters (&, ?, +) in the prompt
+			-- FIX FOR INTERLINKED
 			if targetURL contains "interlinked.apple.com/chat?prompt=" then
 				set oldDelims to AppleScript's text item delimiters
 				set AppleScript's text item delimiters to "?prompt="
@@ -339,7 +353,6 @@ on run {input, parameters}
 		else
 			set finalChosenTarget to ""
 			
-			-- 3A. Identify Unique Engines Enabled
 			set uniqueEngines to {}
 			repeat with tgt in userSavedTargetsList
 				if tgt is not "" then
@@ -351,7 +364,6 @@ on run {input, parameters}
 			
 			set chosenEngine to ""
 			
-			-- 3B. Determine Engine (Bypasses redundant prompts entirely!)
 			if preSelectedEngine is not "" then
 				set chosenEngine to preSelectedEngine
 			else if (count of uniqueEngines) > 0 then
@@ -360,7 +372,6 @@ on run {input, parameters}
 				set chosenEngine to "Apple Marketing"
 			end if
 			
-			-- 3C. Filter Targets for the Chosen Engine
 			set matchingTargets to {}
 			set availableRegions to {}
 			
@@ -383,14 +394,11 @@ on run {input, parameters}
 				end if
 			end repeat
 			
-			-- 3D. Prompt for Region (If multiple regions enabled for this engine)
-			-- Guard: Only show popup for the core region-capable engines
 			set totalAvailableRegions to count of availableRegions
 			if totalAvailableRegions > 1 and (chosenEngine is in {"Apple Marketing", "Apple Music", "Google"}) then
 				set numberedRegions to {}
 				set rCount to 1
 				repeat with reg in availableRegions
-					-- Dynamic Logic: 01. if >9 items, else 1.
 					if rCount is 1 and totalAvailableRegions > 9 then
 						set numPrefix to "01"
 					else
@@ -403,7 +411,6 @@ on run {input, parameters}
 				tell application (path to frontmost application as text)
 					set regionChoice to choose from list numberedRegions with prompt ("Select Region:" & return) default items {item 1 of numberedRegions} with title "OmniSearch"
 					if regionChoice is not false then
-						-- Logic-based index lookup to prevent "1 goes to 10" glitch
 						set chosenString to item 1 of regionChoice
 						repeat with i from 1 to count of numberedRegions
 							if item i of numberedRegions is chosenString then
@@ -418,16 +425,11 @@ on run {input, parameters}
 			else if totalAvailableRegions is 1 then
 				set finalChosenTarget to item 1 of matchingTargets
 			else
-				-- Failsafe default
 				if chosenEngine contains "Apple Marketing" then set finalChosenTarget to "Apple Marketing (en_US) 🇺🇸"
 				if chosenEngine contains "Apple Music" then set finalChosenTarget to "Apple Music (en_US) 🇺🇸"
 				if chosenEngine contains "Google" then set finalChosenTarget to "Google (en_US) 🇺🇸"
 			end if
 			
-			-- ==========================================
-			-- DYNAMIC EXTRACTION ENGINE
-			-- Dynamic parsing directly from the parenthesis text.
-			-- ==========================================
 			set isMarketing to finalChosenTarget contains "Apple Marketing"
 			set isMusic to finalChosenTarget contains "Apple Music"
 			set isGoogleSearch to finalChosenTarget contains "Google"
@@ -438,7 +440,6 @@ on run {input, parameters}
 			set AppleScript's text item delimiters to ")"
 			set extractedLocale to text item 1 of temp1
 			
-			-- Handle formats safely (en_US or just US if user manually edited poorly)
 			set AppleScript's text item delimiters to "_"
 			if (count of text items of extractedLocale) > 1 then
 				set locLang to text item 1 of extractedLocale
@@ -468,7 +469,7 @@ on run {input, parameters}
 		end if
 		
 		-- ==========================================
-		-- 4. SAFARI EXECUTION
+		-- 6. SAFARI EXECUTION
 		-- ==========================================
 		set cacheFile to "/tmp/omnisearch_id.txt"
 		set foundWindow to false
@@ -487,6 +488,7 @@ on run {input, parameters}
 			try
 				set storedTabIndex to (paragraph 4 of cachedData) as integer
 			end try
+		on error
 		end try
 		
 		tell application "System Events" to set safariRunning to exists process "Safari"
@@ -501,6 +503,9 @@ on run {input, parameters}
 		end if
 		
 		tell application "System Events" to set currentPID to unix id of process "Safari" as text
+		
+		set activeWinID to 0
+		set activeTabIndex to 0
 		
 		tell application "Safari"
 			set tabReused to false
@@ -561,7 +566,6 @@ on run {input, parameters}
 				end try
 			end if
 			
-			-- 7. CREATE NEW WINDOW OR TAB
 			if not tabReused then
 				tell application "Safari" to activate
 				if openMode contains "Same Window" and (count of windows) > 0 then
@@ -605,18 +609,21 @@ on run {input, parameters}
 				end if
 			end if
 			
-			-- 8. SAVE EXACT WINDOW, URL & TAB STATE
 			try
 				set activeWinID to id of window 1
 				set activeTabIndex to index of current tab of window 1
+			end try
+		end tell 
+		
+		if activeWinID is not 0 then
+			try
 				do shell script "echo " & quoted form of currentPID & " > " & quoted form of cacheFile
 				do shell script "echo " & quoted form of (activeWinID as string) & " >> " & quoted form of cacheFile
 				do shell script "echo " & quoted form of targetURL & " >> " & quoted form of cacheFile
 				do shell script "echo " & quoted form of (activeTabIndex as string) & " >> " & quoted form of cacheFile
 			end try
-		end tell
+		end if
 		
-		-- 9. JUMP TO FRONT
 		if alwaysFocus is true then
 			tell application "Safari" to activate
 			try
