@@ -1,2 +1,12 @@
 1.1 - https://www.icloud.com/shortcuts/4cdd87c4047e4a6a8482d11e9068fc60
+subtitle: With Auto-Updater
+fa-sync|Auto-Updater:|Silent background checks keep you updated seamlessly.
+fa-shield-halved|WAF Bypass:|Advanced URL sanitization for enterprise firewalls.
+fa-window-restore|Session Hardening:|Perfect PID tracking for Safari restarts.
+
 1.0 - https://www.icloud.com/shortcuts/e3b9f6ea791a4a1c9daf84cf3165ffc6
+subtitle: Safe & Production Ready
+fa-shield-halved,secondary|WAF Bypass:|Advanced URL sanitization for enterprise firewalls.
+fa-window-restore,secondary|Session Hardening:|Perfect PID tracking for Safari restarts.
+fa-cube,secondary|Core Foundation:|The original Omni Search native experience.
+fa-circle-info,secondary|*|Manual updates only.
