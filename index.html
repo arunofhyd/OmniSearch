@@ -217,7 +217,7 @@
             width: 100%;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
-            justify-content: flex-start; /* Start align */
+            justify-content: flex-end; /* Align right to show latest by default on wide screens */
         }
 
         /* Center content if few items on desktop */
@@ -1075,31 +1075,6 @@
     <script>
         document.addEventListener("DOMContentLoaded", () => {
 
-            // --- DATA FOR CHANGELOGS ---
-            const changelogData = {
-                "1.1": {
-                    subtitle: "Auto-Updating & Secure",
-                    features: [
-                        { icon: "fa-sync", text: "<strong>Auto-Updater:</strong> Silent background checks keep you updated seamlessly." },
-                        { icon: "fa-shield-halved", text: "<strong>WAF Bypass:</strong> Advanced URL sanitization for enterprise firewalls." },
-                        { icon: "fa-window-restore", text: "<strong>Session Hardening:</strong> Perfect PID tracking for Safari restarts." }
-                    ]
-                },
-                "1.0": {
-                    subtitle: "Standard Release",
-                    features: [
-                        { icon: "fa-cube", text: "<strong>Core Foundation:</strong> The original Omni Search native experience.", secondary: true },
-                        { icon: "fa-bolt", text: "<strong>Zero Friction:</strong> Instant routing without context switching.", secondary: true },
-                        { icon: "fa-circle-info", text: "<em>Manual updates only.</em>", secondary: true }
-                    ]
-                }
-            };
-
-            const defaultFeatures = [
-                { icon: "fa-star", text: "<strong>New Release:</strong> Performance improvements and bug fixes." },
-                { icon: "fa-code-commit", text: "Check documentation for full details." }
-            ];
-
             // --- VERSION SYNC LOGIC ---
             const syncVersion = async () => {
                 try {
@@ -1109,54 +1084,91 @@
                         const lines = text.split('\n').filter(line => line.trim() !== '');
                         const carousel = document.getElementById('version-carousel');
 
-                        // Clear existing (though it's empty)
                         carousel.innerHTML = '';
 
-                        // Update global "Latest" badge if available
-                        if (lines.length > 0) {
-                            const match = lines[0].match(/^([^\s]+)/);
-                            if (match) {
-                                document.querySelectorAll('.js-latest-version-display').forEach(el => el.textContent = match[1]);
+                        const versions = [];
+                        let currentVersionObj = null;
+
+                        // Parse the new version.txt format
+                        lines.forEach((line) => {
+                            const matchVer = line.match(/^([^\s]+)\s+-\s+(.+)$/);
+                            if (matchVer) {
+                                if (currentVersionObj) {
+                                    versions.push(currentVersionObj);
+                                }
+                                currentVersionObj = {
+                                    ver: matchVer[1],
+                                    link: matchVer[2],
+                                    subtitle: "New Update",
+                                    features: []
+                                };
+                            } else if (currentVersionObj) {
+                                if (line.toLowerCase().startsWith('subtitle:')) {
+                                    currentVersionObj.subtitle = line.substring(9).trim();
+                                } else {
+                                    const parts = line.split('|');
+                                    if (parts.length >= 3) {
+                                        const iconDef = parts[0].trim().split(',');
+                                        const icon = iconDef[0];
+                                        const isSecondary = iconDef.includes('secondary');
+                                        const title = parts[1].trim();
+                                        const desc = parts[2].trim();
+
+                                        let featureText = "";
+                                        if (title === "*") {
+                                            featureText = `<em>${desc}</em>`;
+                                        } else {
+                                            featureText = `<strong>${title}</strong> ${desc}`;
+                                        }
+
+                                        currentVersionObj.features.push({
+                                            icon: icon,
+                                            text: featureText,
+                                            secondary: isSecondary
+                                        });
+                                    }
+                                }
                             }
+                        });
+                        if (currentVersionObj) {
+                            versions.push(currentVersionObj);
                         }
 
-                        // Render Cards
-                        lines.forEach((line, index) => {
-                            const match = line.match(/^([^\s]+)\s+-\s+(.+)$/);
-                            if (!match) return;
+                        if (versions.length > 0) {
+                            document.querySelectorAll('.js-latest-version-display').forEach(el => el.textContent = versions[0].ver);
+                        }
 
-                            const ver = match[1];
-                            const link = match[2];
-                            const isLatest = (index === 0);
+                        // The user requested: "as more verisons are added the older should go off to the left indicating its from the past... if i swipe to right i can see the historic versions."
+                        // Swiping RIGHT on a trackpad scrolls LEFT. Therefore, older versions must be on the LEFT.
+                        // Newest version must be on the RIGHT.
+                        // We achieve this by reversing the array and rendering oldest to newest.
+                        const reversedVersions = [...versions].reverse();
 
-                            // Get data or fallback
-                            const data = changelogData[ver] || { subtitle: "New Update", features: defaultFeatures };
+                        reversedVersions.forEach((versionData, index) => {
+                            const { ver, link, subtitle, features } = versionData;
+                            const isLatest = (ver === versions[0].ver);
 
-                            // Build Features HTML
-                            const featuresHtml = data.features.map(f => `
+                            const featuresHtml = features.map(f => `
                                 <li class="feature-item">
                                     <i class="fa-solid ${f.icon} feature-icon ${f.secondary ? 'secondary' : ''}"></i>
                                     <div>${f.text}</div>
                                 </li>
                             `).join('');
 
-                            // Build Badge
                             const badgeClass = isLatest ? 'badge-latest' : 'badge-stable';
                             const badgeText = isLatest ? 'Latest Release' : 'Stable Release';
 
-                            // Build Button
                             const btnClass = isLatest ? 'btn-primary' : 'btn-secondary';
                             const btnIcon = isLatest ? 'fa-brands fa-apple' : 'fa-download';
                             const btnText = isLatest ? `Download v${ver}` : `Get v${ver}`;
 
-                            // Create Element
                             const card = document.createElement('div');
                             card.className = `version-card ${isLatest ? 'latest' : ''}`;
                             card.innerHTML = `
                                 <div class="card-header">
                                     <span class="version-badge ${badgeClass}">${badgeText}</span>
                                     <h3>v${ver}</h3>
-                                    <p>${data.subtitle}</p>
+                                    <p>${subtitle}</p>
                                 </div>
                                 <div class="card-body">
                                     <ul class="feature-list">
@@ -1172,6 +1184,14 @@
 
                             carousel.appendChild(card);
                         });
+
+                        // Ensure we scroll to the right-most card (latest) initially so the newest is visible.
+                        setTimeout(() => {
+                            const latestCard = carousel.querySelector('.version-card.latest');
+                            if (latestCard) {
+                                carousel.scrollLeft = carousel.scrollWidth;
+                            }
+                        }, 50);
                     }
                 } catch (error) {
                     console.error("Version sync failed:", error);
