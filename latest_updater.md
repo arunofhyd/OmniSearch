@@ -1,13 +1,14 @@
 # OmniSearch Native Logic (With Auto-Updater)
 
-## Features
-1.  **Auto-Update**: Checks `omniisearch.netlify.app/version.txt` for updates.
+This script includes all the safety features of the standard version but adds an **Automatic Update Checker**.
+**Status:** Pending IT Permission. Use this only when authorized.
 
 ## The Script
 
 ```applescript
 on run {input, parameters}
 	with timeout of 30 seconds
+		set originalApp to path to frontmost application as string
 		-- 1. GET THE INPUT: 
 		set searchTerm to (item 1 of input) as string
 		
@@ -34,12 +35,12 @@ on run {input, parameters}
 			try
 				do shell script "open " & quoted form of prefsFile
 			on error
-				tell application "Safari"
+				tell application (path to frontmost application as string)
 					activate
 					display dialog "Preferences file not found. Try searching for 'omnireset' to generate it." buttons {"OK"} default button "OK"
 				end tell
 			end try
-			return input
+			return (searchTerm as string)
 		else if searchTerm contains "omnireset" then
 			try
 				do shell script "rm " & quoted form of prefsFile
@@ -106,7 +107,6 @@ on run {input, parameters}
 		-- Default Variables
 		set openMode to "New Window Update Tab"
 		set windowSize to "fullscreen"
-		set updateFrequency to "daily"
 		set mktTargets to ""
 		set musTargets to ""
 		set googleTargets to ""
@@ -128,8 +128,6 @@ on run {input, parameters}
 							set foundData to true
 						else if p starts with "Size: " then
 							set windowSize to text 7 thru -1 of p
-						else if p starts with "Update Frequency: " then
-							set updateFrequency to text 19 thru -1 of p
 						else if p starts with "Apple Marketing: " then
 							set mktTargets to text 18 thru -1 of p
 						else if p starts with "Apple Music: " then
@@ -150,21 +148,20 @@ on run {input, parameters}
 		-- SETUP WIZARD
 		-- ==========================================
 		if isFirstRun then
-			-- Wrap the ENTIRE UI process inside Safari to guarantee it shows up during a hotkey trigger
-			tell application "Safari"
+			-- Wrap the ENTIRE UI process inside the frontmost application to guarantee it shows up during a hotkey trigger
+			tell application (path to frontmost application as string)
 				activate
 				set welcomeText to "Welcome to OmniSearch! 🚀" & return & return
 				set welcomeText to welcomeText & "Let's quickly set up your preferences."
-				set welcomeResponse to display dialog welcomeText with title "OmniSearch Setup (1/6)" buttons {"Skip (Use Defaults)", "Let's Go!"} default button "Let's Go!" with icon note
+				set welcomeResponse to display dialog welcomeText with title "OmniSearch Setup (1/5)" buttons {"Skip (Use Defaults)", "Let's Go!"} default button "Let's Go!" with icon note
 				
 				set validMkt to {"Apple Marketing (en_US) 🇺🇸"}
 				set validMus to {"Apple Music (en_US) 🇺🇸"}
 				set validGoog to {"Google (en_US) 🇺🇸"}
-				set updateFrequency to "daily"
 				
 				if button returned of welcomeResponse is "Let's Go!" then
 					set modeOptions to {"1. New Window Update Tab (Default) 🪟", "2. New Window New Tab 🗂️", "3. Same Window New Tab ➕", "4. Same Window Update Tab 🎯"}
-					set chosenModeList to choose from list modeOptions with prompt ("How would you like OmniSearch to open your searches?" & return) default items {item 1 of modeOptions} with title "OmniSearch Setup (2/6)"
+					set chosenModeList to choose from list modeOptions with prompt ("How would you like OmniSearch to open your searches?" & return) default items {item 1 of modeOptions} with title "OmniSearch Setup (2/5)"
 					if chosenModeList is not false then
 						set chosenMode to item 1 of chosenModeList
 						if chosenMode contains "New Window Update Tab" then set openMode to "New Window Update Tab"
@@ -175,7 +172,7 @@ on run {input, parameters}
 					
 					if openMode contains "New Window" then
 						set sizeOptions to {"1. Fullscreen 🖥️", "2. Left Half ⬅️", "3. Right Half ➡️", "4. Top Half ⬆️", "5. Bottom Half ⬇️", "6. Center 🎯"}
-						set chosenSizeList to choose from list sizeOptions with prompt ("Choose your preferred window size:" & return) default items {item 1 of sizeOptions} with title "OmniSearch Setup (3/6)"
+						set chosenSizeList to choose from list sizeOptions with prompt ("Choose your preferred window size:" & return) default items {item 1 of sizeOptions} with title "OmniSearch Setup (3/5)"
 						if chosenSizeList is not false then
 							set chosenSize to item 1 of chosenSizeList
 							if chosenSize contains "Fullscreen" then set windowSize to "fullscreen"
@@ -187,17 +184,8 @@ on run {input, parameters}
 						end if
 					end if
 					
-					set updateOptions to {"1. 📆 Daily (Recommended)", "2. 🗓️ Weekly", "3. ⚡️ Always (Check every run)"}
-					set chosenUpdateList to choose from list updateOptions with prompt ("How often should we check the server for OmniSearch updates?" & return) default items {item 1 of updateOptions} with title "OmniSearch Setup (4/6)"
-					if chosenUpdateList is not false then
-						set chosenUpdate to item 1 of chosenUpdateList
-						if chosenUpdate contains "Daily" then set updateFrequency to "daily"
-						if chosenUpdate contains "Weekly" then set updateFrequency to "weekly"
-						if chosenUpdate contains "Always" then set updateFrequency to "always"
-					end if
-					
 					set engineOptions to {"1. Apple Marketing 📺", "2. Apple Music 🎵", "3. Google 🔍"}
-					set chosenEnginesList to choose from list engineOptions with prompt ("Select the search engines you want to enable:" & return & "(Hold Command ⌘ to select multiple)" & return) default items {item 1 of engineOptions} with title "OmniSearch Setup (5/6)" with multiple selections allowed
+					set chosenEnginesList to choose from list engineOptions with prompt ("Select the search engines you want to enable:" & return & "(Hold Command ⌘ to select multiple)" & return) default items {item 1 of engineOptions} with title "OmniSearch Setup (4/5)" with multiple selections allowed
 					
 					set cleanTargetList to {}
 					if chosenEnginesList is not false then
@@ -237,7 +225,7 @@ on run {input, parameters}
 								set optCounter to optCounter + 1
 							end repeat
 							
-							set chosenLocales to choose from list locOptions with prompt ("Select regions for " & engName & ":" & return & "(Hold Command ⌘ to select multiple)" & return) default items {item 2 of locOptions} with title "OmniSearch Setup (6/6)" with multiple selections allowed
+							set chosenLocales to choose from list locOptions with prompt ("Select regions for " & engName & ":" & return & "(Hold Command ⌘ to select multiple)" & return) default items {item 2 of locOptions} with title "OmniSearch Setup (5/5)" with multiple selections allowed
 							
 							if chosenLocales is not false then
 								set addAll to false
@@ -326,7 +314,6 @@ on run {input, parameters}
 			set prefData to "[OMNISEARCH CONFIGURATION]" & return & ¬
 				"Mode: " & openMode & return & ¬
 				"Size: " & windowSize & return & ¬
-				"Update Frequency: " & updateFrequency & return & ¬
 				"Apple Marketing: " & mktTargets & return & ¬
 				"Apple Music: " & musTargets & return & ¬
 				"Google: " & googleTargets
@@ -334,59 +321,24 @@ on run {input, parameters}
 			do shell script "echo " & quoted form of prefData & " > " & quoted form of prefsFile
 		end if
 		
-		-- Stop script if it was a omnireset command
-		if isResetCommand then return input
+		-- If they only typed omnireset, we stop the script here so it doesn't search safari for "omnireset"
+		if isResetCommand then return (searchTerm as string)
 		
 		-- ==========================================
-		-- DATA VALIDATION & FALLBACK LOGIC
+		-- AUTO-UPDATE CHECK:
 		-- ==========================================
-		set validMkt to {}
-		set validMus to {}
-		set validGoog to {}
+		-- Update Settings:
+		-- "always" (check every run - best for testing)
+		-- "daily"  (standard production setting)
+		-- "weekly" (minimum intrusion)
+		set updateFrequency to "always"
 		
-		set oldDelims to AppleScript's text item delimiters
-		set AppleScript's text item delimiters to "|"
-		
-		if mktTargets is not "" then
-			set tempItems to text items of mktTargets
-			repeat with tgt in tempItems
-				if tgt contains "(" and tgt contains ")" then set end of validMkt to tgt as string
-			end repeat
-		end if
-		
-		if musTargets is not "" then
-			set tempItems to text items of musTargets
-			repeat with tgt in tempItems
-				if tgt contains "(" and tgt contains ")" then set end of validMus to tgt as string
-			end repeat
-		end if
-		
-		if googleTargets is not "" then
-			set tempItems to text items of googleTargets
-			repeat with tgt in tempItems
-				if tgt contains "(" and tgt contains ")" then set end of validGoog to tgt as string
-			end repeat
-		end if
-		set AppleScript's text item delimiters to oldDelims
-		
-		if (count of validMkt) is 0 then set end of validMkt to "Apple Marketing (en_US) 🇺🇸"
-		if (count of validMus) is 0 then set end of validMus to "Apple Music (en_US) 🇺🇸"
-		if (count of validGoog) is 0 then set end of validGoog to "Google (en_US) 🇺🇸"
-		
-		set userSavedTargetsList to validMkt & validMus & validGoog
-		set customBounds to {100, 100, 1200, 800}
-		set alwaysFocus to true
-		set targetURL to ""
-		-- ==========================================
-		
-		-- ==========================================
-		-- 4. AUTO-UPDATE CHECK 
-		-- ==========================================
 		set currentVersion to 1.1
 		set dateCache to "/tmp/omnisearch_lastcheck.txt"
 		set todayDate to (current date)
 		set todayDateString to short date string of todayDate
 		
+		-- Retrieve ISO week identifier using shell for "weekly" frequency support
 		set weekIdentifier to do shell script "date +%G-W%V"
 		
 		set shouldCheck to false
@@ -408,9 +360,12 @@ on run {input, parameters}
 		
 		if shouldCheck then
 			try
+				-- Pinging the server with a 2-second timeout.
+				-- We use 'awk' to extract just the first word (version number) from the first line of the new multi-line format.
 				set remoteVersionString to do shell script "curl -s --max-time 2 https://omniisearch.netlify.app/version.txt | head -n 1 | awk '{print $1}'"
 				
 				if remoteVersionString is not "" then
+					-- Handle decimal points safely across different system locales
 					set oldDelims to AppleScript's text item delimiters
 					set AppleScript's text item delimiters to "."
 					set remotePieces to text items of remoteVersionString
@@ -420,58 +375,109 @@ on run {input, parameters}
 					
 					set remoteVersion to localizedRemoteVersionString as real
 					
+					-- Compare versions
 					if remoteVersion > currentVersion then
-						tell application "Safari"
-							activate
+						-- Force the dialog to the absolute frontmost layer
+						tell application (path to frontmost application as string)
 							set dialogResult to display dialog "A new version of Omni Search (v" & remoteVersionString & ") is available!" & return & return & "You are currently running v" & currentVersion & ". Would you like to download the update?" with title "Omni Search Update" buttons {"Skip for now", "Open Website"} default button "Open Website"
 							
 							if button returned of dialogResult is "Open Website" then
+								-- Get Safari PID safely
 								tell application "System Events"
 									set currentSafariPID to unix id of process "Safari" as text
 								end tell
 								
+								-- Get Cache data to check if we can reuse the window
 								set cacheFile to "/tmp/omnisearch_id.txt"
 								set storedPID to ""
 								set storedID to 0
 								try
 									set cachedData to do shell script "cat " & quoted form of cacheFile
+									-- We use paragraph reading here to match the new cache format
 									set storedPID to paragraph 1 of cachedData
 									set storedID to (paragraph 2 of cachedData) as integer
 								end try
-								
-								set updateTargetFound to false
-								if (storedPID is equal to currentSafariPID) and (storedID is not 0) then
-									try
-										if exists window id storedID then
-											tell window id storedID
-												set URL of current tab to "https://omniisearch.netlify.app"
-												set index to 1
-												set updateTargetFound to true
-											end tell
-										end if
-									end try
-								end if
-								
-								if not updateTargetFound then
-									make new document
-									try
-										set URL of document 1 to "https://omniisearch.netlify.app"
-									end try
-								end if
-								return input
+
+								tell application "Safari"
+									set updateTargetFound to false
+
+									-- Specific check to see if OmniSearch window is open to prevent work loss
+									if (storedPID is equal to currentSafariPID) and (storedID is not 0) then
+										try
+											if exists window id storedID then
+												tell window id storedID
+													set URL of current tab to "https://omniisearch.netlify.app"
+													set index to 1
+													set updateTargetFound to true
+												end tell
+											end if
+										end try
+									end if
+
+									-- If no OmniSearch window, open a NEW window to protect active tabs
+									if not updateTargetFound then
+										make new document with properties {URL:"https://omniisearch.netlify.app"}
+									end if
+									activate
+								end tell
+								return (searchTerm as string)
 							end if
 						end tell
 					end if
 					
+					-- Update cache signature based on current frequency
 					if updateFrequency is "daily" then
 						do shell script "echo " & quoted form of todayDateString & " > " & quoted form of dateCache
 					else if updateFrequency is "weekly" then
 						do shell script "echo " & quoted form of weekIdentifier & " > " & quoted form of dateCache
 					end if
 				end if
+			on error
+				-- Silent fail on network error to allow search to proceed
 			end try
 		end if
 		
+		-- ==========================================
+		-- DATA VALIDATION & FALLBACK LOGIC
+		-- ==========================================
+		set validMkt to {}
+		set validMus to {}
+		set validGoog to {}
+
+		set oldDelims to AppleScript's text item delimiters
+		set AppleScript's text item delimiters to "|"
+
+		if mktTargets is not "" then
+			set tempItems to text items of mktTargets
+			repeat with tgt in tempItems
+				if tgt contains "(" and tgt contains ")" then set end of validMkt to tgt as string
+			end repeat
+		end if
+
+		if musTargets is not "" then
+			set tempItems to text items of musTargets
+			repeat with tgt in tempItems
+				if tgt contains "(" and tgt contains ")" then set end of validMus to tgt as string
+			end repeat
+		end if
+
+		if googleTargets is not "" then
+			set tempItems to text items of googleTargets
+			repeat with tgt in tempItems
+				if tgt contains "(" and tgt contains ")" then set end of validGoog to tgt as string
+			end repeat
+		end if
+		set AppleScript's text item delimiters to oldDelims
+
+		if (count of validMkt) is 0 then set end of validMkt to "Apple Marketing (en_US) 🇺🇸"
+		if (count of validMus) is 0 then set end of validMus to "Apple Music (en_US) 🇺🇸"
+		if (count of validGoog) is 0 then set end of validGoog to "Google (en_US) 🇺🇸"
+
+		set userSavedTargetsList to validMkt & validMus & validGoog
+		set customBounds to {100, 100, 1200, 800}
+		set alwaysFocus to true
+		set targetURL to ""
+
 		-- ==========================================
 		-- 5. SMART TARGET MENU & DYNAMIC URL GENERATOR
 		-- ==========================================
@@ -555,9 +561,9 @@ on run {input, parameters}
 					set rCount to rCount + 1
 				end repeat
 				
-				-- Ensure Safari presents the list so it doesn't get hidden by the hotkey runner
-				tell application "Safari"
-					activate 
+				-- Ensure the frontmost application presents the list so it doesn't get hidden by the hotkey runner
+				tell application (path to frontmost application as string)
+					activate
 					set regionChoice to choose from list numberedRegions with prompt ("Select Region:" & return) default items {item 1 of numberedRegions} with title "OmniSearch"
 				end tell
 				
@@ -570,7 +576,7 @@ on run {input, parameters}
 						end if
 					end repeat
 				else
-					return input
+					return (searchTerm as string)
 				end if
 			else if totalAvailableRegions is 1 then
 				set finalChosenTarget to item 1 of matchingTargets
@@ -642,7 +648,6 @@ on run {input, parameters}
 			try
 				set storedTabIndex to (paragraph 4 of cachedData) as integer
 			end try
-		on error
 		end try
 		
 		tell application "System Events" to set safariRunning to exists process "Safari"
@@ -668,7 +673,7 @@ on run {input, parameters}
 			if openMode is "Same Window New Tab" and (count of windows) > 0 then
 				tell window 1
 					-- ASYNC OPTIMIZATION: Make tab first, then set URL to prevent timeout
-					make new tab at end of tabs
+					make new tab at end of tabs with properties {URL:"about:blank"}
 					set current tab to last tab
 					set URL of current tab to targetURL
 					if alwaysFocus is true then
@@ -685,7 +690,7 @@ on run {input, parameters}
 							set foundWindow to true
 							if openMode is "New Window New Tab" then
 								-- ASYNC OPTIMIZATION: Make tab first, then set URL
-								make new tab at end of tabs
+								make new tab at end of tabs with properties {URL:"about:blank"}
 								set current tab to last tab
 								set URL of current tab to targetURL
 								set tabReused to true
@@ -738,7 +743,7 @@ on run {input, parameters}
 				if openMode contains "Same Window" and (count of windows) > 0 then
 					tell window 1
 						-- ASYNC OPTIMIZATION
-						make new tab at end of tabs
+						make new tab at end of tabs with properties {URL:"about:blank"}
 						set current tab to last tab
 						set URL of current tab to targetURL
 					end tell
@@ -746,7 +751,7 @@ on run {input, parameters}
 				else
 					set initialWindowCount to count of windows
 					-- ASYNC OPTIMIZATION: Create window immediately without waiting for page load
-					make new document
+					make new document with properties {URL:"about:blank"}
 					set createdNewWindow to true
 					set timeoutCounter to 0
 					repeat while (count of windows) is initialWindowCount
@@ -800,16 +805,13 @@ on run {input, parameters}
 		end if
 		
 		if alwaysFocus is true then
-			tell application "Safari" to activate
 			try
-				tell application "System Events" to tell process "Safari"
-					set frontmost to true
-					perform action "AXRaise" of window 1
-				end tell
+				tell application originalApp to activate
 			end try
+			do shell script "sleep 0.1; osascript -e 'tell application \"Safari\" to activate' > /dev/null 2>&1 &"
 		end if
 		
 	end timeout
-	return input
+	return (searchTerm as string)
 end run
 ```
