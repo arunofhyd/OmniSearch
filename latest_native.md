@@ -4,9 +4,17 @@
 
 ```applescript
 on run {input, parameters}
-	with timeout of 300 seconds
+	with timeout of 30 seconds
 		-- 1. GET THE INPUT: 
 		set searchTerm to (item 1 of input) as string
+		
+		-- ==========================================
+		-- GET DESKTOP BOUNDS EARLY (PREVENTS HOTKEY DEADLOCK)
+		-- ==========================================
+		set {dL, dT, dR, dB} to {0, 25, 1440, 900} -- Safe default
+		try
+			tell application "Finder" to set {dL, dT, dR, dB} to bounds of window of desktop
+		end try
 		
 		-- ==========================================
 		-- 2. FILE PATHS & MAGIC KEYWORDS
@@ -23,7 +31,10 @@ on run {input, parameters}
 			try
 				do shell script "open " & quoted form of prefsFile
 			on error
-				display dialog "Preferences file not found. Try searching for 'omnireset' to generate it." buttons {"OK"} default button "OK"
+				tell application "Safari"
+					activate
+					display dialog "Preferences file not found. Try searching for 'omnireset' to generate it." buttons {"OK"} default button "OK"
+				end tell
 			end try
 			return input
 		else if searchTerm contains "omnireset" then
@@ -133,7 +144,9 @@ on run {input, parameters}
 		-- SETUP WIZARD
 		-- ==========================================
 		if isFirstRun then
-			tell application (path to frontmost application as text)
+			-- Wrap the ENTIRE UI process inside Safari to guarantee it shows up during a hotkey trigger
+			tell application "Safari"
+				activate
 				set welcomeText to "Welcome to OmniSearch! 🚀" & return & return
 				set welcomeText to welcomeText & "Let's quickly set up your preferences."
 				set welcomeResponse to display dialog welcomeText with title "OmniSearch Setup (1/5)" buttons {"Skip (Use Defaults)", "Let's Go!"} default button "Let's Go!" with icon note
@@ -263,35 +276,36 @@ on run {input, parameters}
 				set finishText to finishText & "• Search 'omnireset' to run this setup wizard again." & return & return
 				set finishText to finishText & "A copy of these details has been saved to your Desktop."
 				
-				set desktopFolder to POSIX path of (path to desktop folder)
-				set detailsFile to desktopFolder & "OmniSearch Setup Details.txt"
-				
-				set fileContent to "=============================================" & return & ¬
-					"         OmniSearch Configuration            " & return & ¬
-					"=============================================" & return & return & ¬
-					"The preferences file for OmniSearch is saved in:" & return & ¬
-					"~/OmniSearch/OmniSearch_Preferences.txt" & return & return & ¬
-					"You can go to this file by pressing ⌘ Shift G" & return & ¬
-					"and pasting the path in it." & return & return & ¬
-					"---------------------------------------------" & return & ¬
-					"To open the preferences:" & return & ¬
-					"🔍 Search 'omnisettings' directly in the shortcut" & return & return & ¬
-					"To reset it:" & return & ¬
-					"🔍 Search 'omnireset' in the shortcut directly" & return & return & ¬
-					"Or 🗑️ Delete the preferences file from the path shown above" & return & return & ¬
-					"============================================="
-					
-				do shell script "echo " & quoted form of fileContent & " > " & quoted form of detailsFile
-				
 				display dialog finishText with title "OmniSearch Setup Complete" buttons {"Awesome!"} default button "Awesome!" with icon note
-				
-				set oldDelims to AppleScript's text item delimiters
-				set AppleScript's text item delimiters to "|"
-				set mktTargets to validMkt as string
-				set musTargets to validMus as string
-				set googleTargets to validGoog as string
-				set AppleScript's text item delimiters to oldDelims
-			end tell -- END TELL BLOCK
+			end tell -- END UI BLOCK
+			
+			-- Generate desktop file
+			set desktopFolder to POSIX path of (path to desktop folder)
+			set detailsFile to desktopFolder & "OmniSearch Setup Details.txt"
+			
+			set fileContent to "=============================================" & return & ¬
+				"         OmniSearch Configuration            " & return & ¬
+				"=============================================" & return & return & ¬
+				"The preferences file for OmniSearch is saved in:" & return & ¬
+				"~/OmniSearch/OmniSearch_Preferences.txt" & return & return & ¬
+				"You can go to this file by pressing ⌘ Shift G" & return & ¬
+				"and pasting the path in it." & return & return & ¬
+				"---------------------------------------------" & return & ¬
+				"To open the preferences:" & return & ¬
+				"🔍 Search 'omnisettings' directly in the shortcut" & return & return & ¬
+				"To reset it:" & return & ¬
+				"🔍 Search 'omnireset' in the shortcut directly" & return & return & ¬
+				"Or 🗑️ Delete the preferences file from the path shown above" & return & return & ¬
+				"============================================="
+			
+			do shell script "echo " & quoted form of fileContent & " > " & quoted form of detailsFile
+			
+			set oldDelims to AppleScript's text item delimiters
+			set AppleScript's text item delimiters to "|"
+			set mktTargets to validMkt as string
+			set musTargets to validMus as string
+			set googleTargets to validGoog as string
+			set AppleScript's text item delimiters to oldDelims
 			
 			set prefData to "[OMNISEARCH CONFIGURATION]" & return & ¬
 				"Mode: " & openMode & return & ¬
@@ -430,20 +444,23 @@ on run {input, parameters}
 					set rCount to rCount + 1
 				end repeat
 				
-				tell application (path to frontmost application as text)
+				-- Ensure Safari presents the list so it doesn't get hidden by the hotkey runner
+				tell application "Safari"
+					activate 
 					set regionChoice to choose from list numberedRegions with prompt ("Select Region:" & return) default items {item 1 of numberedRegions} with title "OmniSearch"
-					if regionChoice is not false then
-						set chosenString to item 1 of regionChoice
-						repeat with i from 1 to count of numberedRegions
-							if item i of numberedRegions is chosenString then
-								set finalChosenTarget to item i of matchingTargets
-								exit repeat
-							end if
-						end repeat
-					else
-						return input
-					end if
 				end tell
+				
+				if regionChoice is not false then
+					set chosenString to item 1 of regionChoice
+					repeat with i from 1 to count of numberedRegions
+						if item i of numberedRegions is chosenString then
+							set finalChosenTarget to item i of matchingTargets
+							exit repeat
+						end if
+					end repeat
+				else
+					return input
+				end if
 			else if totalAvailableRegions is 1 then
 				set finalChosenTarget to item 1 of matchingTargets
 			else
@@ -477,16 +494,20 @@ on run {input, parameters}
 			
 			if isMarketing then
 				set targetURL to "https://toolbox.marketingtools.apple.com/en-us?sf=" & lowerCountry & "&q=" & searchTerm
+			else if isMusic then
+				set targetURL to "https://music.apple.com/" & lowerCountry & "/search?term=" & searchTerm
+			else if isGoogleSearch then
+				set targetURL to "https://www.google.com/search?q=" & searchTerm & "&gl=" & lowerCountry & "&hl=" & lowerLocaleDash
+			end if
+			
+			-- CLEAN THE LINK: Swap spaces for "+" on Marketing tools
+			if targetURL contains "marketingtools.apple.com" then
 				set oldDelims to AppleScript's text item delimiters
 				set AppleScript's text item delimiters to {"%2520", "%20", " "}
 				set urlPieces to text items of targetURL
 				set AppleScript's text item delimiters to "+"
 				set targetURL to urlPieces as string
 				set AppleScript's text item delimiters to oldDelims
-			else if isMusic then
-				set targetURL to "https://music.apple.com/" & lowerCountry & "/search?term=" & searchTerm
-			else if isGoogleSearch then
-				set targetURL to "https://www.google.com/search?q=" & searchTerm & "&gl=" & lowerCountry & "&hl=" & lowerLocaleDash
 			end if
 		end if
 		
@@ -510,6 +531,7 @@ on run {input, parameters}
 			try
 				set storedTabIndex to (paragraph 4 of cachedData) as integer
 			end try
+		on error
 		end try
 		
 		tell application "System Events" to set safariRunning to exists process "Safari"
@@ -534,8 +556,10 @@ on run {input, parameters}
 			
 			if openMode is "Same Window New Tab" and (count of windows) > 0 then
 				tell window 1
-					make new tab at end of tabs with properties {URL:targetURL}
+					-- ASYNC OPTIMIZATION: Make tab first, then set URL to prevent timeout
+					make new tab at end of tabs
 					set current tab to last tab
+					set URL of current tab to targetURL
 					if alwaysFocus is true then
 						set visible to true
 						set miniaturized to false
@@ -549,31 +573,42 @@ on run {input, parameters}
 						tell window id storedID
 							set foundWindow to true
 							if openMode is "New Window New Tab" then
-								make new tab at end of tabs with properties {URL:targetURL}
+								-- ASYNC OPTIMIZATION: Make tab first, then set URL
+								make new tab at end of tabs
 								set current tab to last tab
+								set URL of current tab to targetURL
 								set tabReused to true
 							else if openMode contains "Update Tab" then
+								
+								-- PRIMARY (URL FINGERPRINTING): Scan all tabs for the exact URL
 								if storedURL is not "" then
-									set totalTabs to count of tabs
-									repeat with i from 1 to totalTabs
-										try
-											if URL of tab i is equal to storedURL then
+									try
+										-- BULK FETCH OPTIMIZATION: Gets all URLs in one AppleEvent to prevent timeout loops
+										set allURLs to URL of tabs
+										set totalTabs to count of allURLs
+										repeat with i from 1 to totalTabs
+											if (item i of allURLs) as string is equal to storedURL then
 												set URL of tab i to targetURL
 												set current tab to tab i
 												set tabReused to true
 												exit repeat
 											end if
-										end try
-									end repeat
+										end repeat
+									end try
 								end if
+								
+								-- FALLBACK (TAB INDEX): If URL changed, reuse the last known Tab Index
 								if not tabReused and storedTabIndex > 0 then
 									if (count of tabs) ≥ storedTabIndex then
-										set URL of tab storedTabIndex to targetURL
-										set current tab to tab storedTabIndex
-										set tabReused to true
+										try
+											set URL of tab storedTabIndex to targetURL
+											set current tab to tab storedTabIndex
+											set tabReused to true
+										end try
 									end if
 								end if
 							end if
+							
 							if tabReused and alwaysFocus is true then
 								set visible to true
 								set miniaturized to false
@@ -591,13 +626,16 @@ on run {input, parameters}
 				tell application "Safari" to activate
 				if openMode contains "Same Window" and (count of windows) > 0 then
 					tell window 1
-						make new tab at end of tabs with properties {URL:targetURL}
+						-- ASYNC OPTIMIZATION
+						make new tab at end of tabs
 						set current tab to last tab
+						set URL of current tab to targetURL
 					end tell
 					set createdNewWindow to false
 				else
 					set initialWindowCount to count of windows
-					make new document with properties {URL:targetURL}
+					-- ASYNC OPTIMIZATION: Create window immediately without waiting for page load
+					make new document
 					set createdNewWindow to true
 					set timeoutCounter to 0
 					repeat while (count of windows) is initialWindowCount
@@ -606,11 +644,16 @@ on run {input, parameters}
 						if timeoutCounter > 15 then exit repeat
 					end repeat
 					delay 0.1
+					
+					-- Set URL after window successfully spawns to prevent hanging
+					try
+						set URL of current tab of window 1 to targetURL
+					end try
 				end if
 				
 				if createdNewWindow then
 					try
-						tell application "Finder" to set {dL, dT, dR, dB} to bounds of window of desktop
+						-- WE USE THE SAFE dL/dT/dR/dB BOUNDS RETRIEVED AT THE TOP OF THE SCRIPT
 						if windowSize is "left" then
 							set bounds of window 1 to {0, 25, dR / 2, dB}
 						else if windowSize is "right" then
