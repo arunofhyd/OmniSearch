@@ -5,6 +5,7 @@
 ```applescript
 on run {input, parameters}
 	with timeout of 30 seconds
+		set originalApp to path to frontmost application as string
 		-- 1. GET THE INPUT: 
 		set searchTerm to (item 1 of input) as string
 		
@@ -31,12 +32,12 @@ on run {input, parameters}
 			try
 				do shell script "open " & quoted form of prefsFile
 			on error
-				tell application "Safari"
+				tell application (path to frontmost application as string)
 					activate
 					display dialog "Preferences file not found. Try searching for 'omnireset' to generate it." buttons {"OK"} default button "OK"
 				end tell
 			end try
-			return input
+			return (searchTerm as string)
 		else if searchTerm contains "omnireset" then
 			try
 				do shell script "rm " & quoted form of prefsFile
@@ -144,8 +145,8 @@ on run {input, parameters}
 		-- SETUP WIZARD
 		-- ==========================================
 		if isFirstRun then
-			-- Wrap the ENTIRE UI process inside Safari to guarantee it shows up during a hotkey trigger
-			tell application "Safari"
+			-- Wrap the ENTIRE UI process inside the frontmost application to guarantee it shows up during a hotkey trigger
+			tell application (path to frontmost application as string)
 				activate
 				set welcomeText to "Welcome to OmniSearch! 🚀" & return & return
 				set welcomeText to welcomeText & "Let's quickly set up your preferences."
@@ -318,7 +319,7 @@ on run {input, parameters}
 		end if
 		
 		-- If they only typed omnireset, we stop the script here so it doesn't search safari for "omnireset"
-		if isResetCommand then return input
+		if isResetCommand then return (searchTerm as string)
 		
 		-- ==========================================
 		-- DATA VALIDATION & FALLBACK LOGIC
@@ -444,9 +445,9 @@ on run {input, parameters}
 					set rCount to rCount + 1
 				end repeat
 				
-				-- Ensure Safari presents the list so it doesn't get hidden by the hotkey runner
-				tell application "Safari"
-					activate 
+				-- Ensure the frontmost application presents the list so it doesn't get hidden by the hotkey runner
+				tell application (path to frontmost application as string)
+					activate
 					set regionChoice to choose from list numberedRegions with prompt ("Select Region:" & return) default items {item 1 of numberedRegions} with title "OmniSearch"
 				end tell
 				
@@ -459,7 +460,7 @@ on run {input, parameters}
 						end if
 					end repeat
 				else
-					return input
+					return (searchTerm as string)
 				end if
 			else if totalAvailableRegions is 1 then
 				set finalChosenTarget to item 1 of matchingTargets
@@ -531,7 +532,6 @@ on run {input, parameters}
 			try
 				set storedTabIndex to (paragraph 4 of cachedData) as integer
 			end try
-		on error
 		end try
 		
 		tell application "System Events" to set safariRunning to exists process "Safari"
@@ -557,7 +557,7 @@ on run {input, parameters}
 			if openMode is "Same Window New Tab" and (count of windows) > 0 then
 				tell window 1
 					-- ASYNC OPTIMIZATION: Make tab first, then set URL to prevent timeout
-					make new tab at end of tabs
+					make new tab at end of tabs with properties {URL:"about:blank"}
 					set current tab to last tab
 					set URL of current tab to targetURL
 					if alwaysFocus is true then
@@ -574,7 +574,7 @@ on run {input, parameters}
 							set foundWindow to true
 							if openMode is "New Window New Tab" then
 								-- ASYNC OPTIMIZATION: Make tab first, then set URL
-								make new tab at end of tabs
+								make new tab at end of tabs with properties {URL:"about:blank"}
 								set current tab to last tab
 								set URL of current tab to targetURL
 								set tabReused to true
@@ -627,7 +627,7 @@ on run {input, parameters}
 				if openMode contains "Same Window" and (count of windows) > 0 then
 					tell window 1
 						-- ASYNC OPTIMIZATION
-						make new tab at end of tabs
+						make new tab at end of tabs with properties {URL:"about:blank"}
 						set current tab to last tab
 						set URL of current tab to targetURL
 					end tell
@@ -635,7 +635,7 @@ on run {input, parameters}
 				else
 					set initialWindowCount to count of windows
 					-- ASYNC OPTIMIZATION: Create window immediately without waiting for page load
-					make new document
+					make new document with properties {URL:"about:blank"}
 					set createdNewWindow to true
 					set timeoutCounter to 0
 					repeat while (count of windows) is initialWindowCount
@@ -689,16 +689,13 @@ on run {input, parameters}
 		end if
 		
 		if alwaysFocus is true then
-			tell application "Safari" to activate
 			try
-				tell application "System Events" to tell process "Safari"
-					set frontmost to true
-					perform action "AXRaise" of window 1
-				end tell
+				tell application originalApp to activate
 			end try
+			do shell script "sleep 0.1; osascript -e 'tell application \"Safari\" to activate' > /dev/null 2>&1 &"
 		end if
 		
 	end timeout
-	return input
+	return (searchTerm as string)
 end run
 ```
