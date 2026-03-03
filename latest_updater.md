@@ -306,7 +306,7 @@ on run {input, parameters}
 				"To open the preferences:" & return & ¬
 				"🔍 Search 'omnisettings' directly in the shortcut" & return & return & ¬
 				"To reset it:" & return & ¬
-				"🔍 Search 'omnireset' in the shortcut directly" & return & return & ¬
+				"🔍 Search 'omnireset' directly in the shortcut" & return & return & ¬
 				"Or 🗑️ Delete the preferences file from the path shown above" & return & return & ¬
 				"============================================="
 			
