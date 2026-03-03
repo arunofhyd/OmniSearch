@@ -387,7 +387,7 @@ on run {input, parameters}
 			try
 				-- Pinging the server with a 2-second timeout.
 				-- We use 'awk' to extract just the first word (version number) from the first line of the new multi-line format.
-				set remoteVersionString to do shell script "curl -s --max-time 2 https://omniisearch.netlify.app/version.txt | head -n 1 | awk '{print $1}'"
+				set remoteVersionString to do shell script "curl -s --max-time 2 https://omniisearch.netlify.app/version.json | grep -o '\"version\": *\"[^\"]*\"' | head -n 1 | cut -d'\"' -f4"
 				
 				if remoteVersionString is not "" then
 					-- Handle decimal points safely across different system locales

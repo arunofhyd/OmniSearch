@@ -1078,61 +1078,33 @@
             // --- VERSION SYNC LOGIC ---
             const syncVersion = async () => {
                 try {
-                    const response = await fetch('/version.txt');
+                    const response = await fetch('/version.json');
                     if (response.ok) {
-                        const text = await response.text();
-                        const lines = text.split('\n').filter(line => line.trim() !== '');
+                        const data = await response.json();
                         const carousel = document.getElementById('version-carousel');
 
                         carousel.innerHTML = '';
 
-                        const versions = [];
-                        let currentVersionObj = null;
-
-                        // Parse the new version.txt format
-                        lines.forEach((line) => {
-                            const matchVer = line.match(/^([^\s]+)\s+-\s+(.+)$/);
-                            if (matchVer) {
-                                if (currentVersionObj) {
-                                    versions.push(currentVersionObj);
-                                }
-                                currentVersionObj = {
-                                    ver: matchVer[1],
-                                    link: matchVer[2],
-                                    subtitle: "New Update",
-                                    features: []
-                                };
-                            } else if (currentVersionObj) {
-                                if (line.toLowerCase().startsWith('subtitle:')) {
-                                    currentVersionObj.subtitle = line.substring(9).trim();
-                                } else {
-                                    const parts = line.split('|');
-                                    if (parts.length >= 3) {
-                                        const iconDef = parts[0].trim().split(',');
-                                        const icon = iconDef[0];
-                                        const isSecondary = iconDef.includes('secondary');
-                                        const title = parts[1].trim();
-                                        const desc = parts[2].trim();
-
-                                        let featureText = "";
-                                        if (title === "*") {
-                                            featureText = `<em>${desc}</em>`;
-                                        } else {
-                                            featureText = `<strong>${title}</strong> ${desc}`;
-                                        }
-
-                                        currentVersionObj.features.push({
-                                            icon: icon,
-                                            text: featureText,
-                                            secondary: isSecondary
-                                        });
+                        const versions = data.versions.map(v => {
+                            return {
+                                ver: v.version,
+                                link: v.link,
+                                subtitle: v.subtitle || "New Update",
+                                features: v.features.map(f => {
+                                    let featureText = "";
+                                    if (f.title === "*") {
+                                        featureText = `<em>${f.description}</em>`;
+                                    } else {
+                                        featureText = `<strong>${f.title}</strong> ${f.description}`;
                                     }
-                                }
-                            }
+                                    return {
+                                        icon: f.icon,
+                                        text: featureText,
+                                        secondary: f.secondary
+                                    };
+                                })
+                            };
                         });
-                        if (currentVersionObj) {
-                            versions.push(currentVersionObj);
-                        }
 
                         if (versions.length > 0) {
                             document.querySelectorAll('.js-latest-version-display').forEach(el => el.textContent = versions[0].ver);

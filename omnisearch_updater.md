@@ -4,7 +4,7 @@ This script includes all the safety features of the standard version but adds an
 **Status:** Pending IT Permission. Use this only when authorized.
 
 ## Features
-1.  **Auto-Update**: Checks `omniisearch.netlify.app/version.txt` for updates.
+1.  **Auto-Update**: Checks `omniisearch.netlify.app/version.json` for updates.
 2.  **Window Sizing**: Supports "fullscreen", "left", "right", "top", "bottom", "center", or "custom".
 3.  **Configurable Frequency**: "always", "daily", or "weekly".
 4.  **Tab Safety**: Uses the same safe "Tab 1" logic.
@@ -37,7 +37,7 @@ on run {input, parameters}
 	-- ==========================================
 	
 	-- 3. AUTO-UPDATE CHECK:
-	-- This block handles silent background version checks against the hosted version.txt
+	-- This block handles silent background version checks against the hosted version.json
 	set currentVersion to 1.1
 	set dateCache to "/tmp/omnisearch_lastcheck.txt"
 	set todayDate to (current date)
@@ -67,7 +67,7 @@ on run {input, parameters}
 		try
 			-- Pinging the server with a 2-second timeout.
 			-- We use 'awk' to extract just the first word (version number) from the first line of the new multi-line format.
-			set remoteVersionString to do shell script "curl -s --max-time 2 https://omniisearch.netlify.app/version.txt | head -n 1 | awk '{print $1}'"
+			set remoteVersionString to do shell script "curl -s --max-time 2 https://omniisearch.netlify.app/version.json | grep -o '\"version\": *\"[^\"]*\"' | head -n 1 | cut -d'\"' -f4"
 			
 			if remoteVersionString is not "" then
 				-- Handle decimal points safely across different system locales
