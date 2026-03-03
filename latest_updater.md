@@ -35,7 +35,7 @@ on run {input, parameters}
 			try
 				do shell script "open " & quoted form of prefsFile
 			on error
-				tell application (path to frontmost application as string)
+				tell application "System Events"
 					activate
 					display dialog "Preferences file not found. Try searching for 'omnireset' to generate it." buttons {"OK"} default button "OK"
 				end tell
@@ -105,7 +105,7 @@ on run {input, parameters}
 			"en_SG|🇸🇬", "en_ZA|🇿🇦", "ar_SA|🇸🇦", "hi_IN|🇮🇳"}
 		
 		-- Default Variables
-		set openMode to "New Window Update Tab"
+		set openMode to "SmartMode"
 		set windowSize to "fullscreen"
 		set mktTargets to ""
 		set musTargets to ""
@@ -148,8 +148,8 @@ on run {input, parameters}
 		-- SETUP WIZARD
 		-- ==========================================
 		if isFirstRun then
-			-- Wrap the ENTIRE UI process inside the frontmost application to guarantee it shows up during a hotkey trigger
-			tell application (path to frontmost application as string)
+			-- Wrap the ENTIRE UI process inside System Events to guarantee it shows up during a hotkey trigger
+			tell application "System Events"
 				activate
 				set welcomeText to "Welcome to OmniSearch! 🚀" & return & return
 				set welcomeText to welcomeText & "Let's quickly set up your preferences."
@@ -160,17 +160,18 @@ on run {input, parameters}
 				set validGoog to {"Google (en_US) 🇺🇸"}
 				
 				if button returned of welcomeResponse is "Let's Go!" then
-					set modeOptions to {"1. New Window Update Tab (Default) 🪟", "2. New Window New Tab 🗂️", "3. Same Window New Tab ➕", "4. Same Window Update Tab 🎯"}
+					set modeOptions to {"1. SmartMode (Default) 🧠", "2. New Window Update Tab 🪟", "3. New Window New Tab 🗂️", "4. Same Window New Tab ➕", "5. Same Window Update Tab 🎯"}
 					set chosenModeList to choose from list modeOptions with prompt ("How would you like OmniSearch to open your searches?" & return) default items {item 1 of modeOptions} with title "OmniSearch Setup (2/5)"
 					if chosenModeList is not false then
 						set chosenMode to item 1 of chosenModeList
+						if chosenMode contains "SmartMode" then set openMode to "SmartMode"
 						if chosenMode contains "New Window Update Tab" then set openMode to "New Window Update Tab"
 						if chosenMode contains "New Window New Tab" then set openMode to "New Window New Tab"
 						if chosenMode contains "Same Window New Tab" then set openMode to "Same Window New Tab"
 						if chosenMode contains "Same Window Update Tab" then set openMode to "Same Window Update Tab"
 					end if
 					
-					if openMode contains "New Window" then
+					if openMode contains "New Window" or openMode contains "SmartMode" then
 						set sizeOptions to {"1. Fullscreen 🖥️", "2. Left Half ⬅️", "3. Right Half ➡️", "4. Top Half ⬆️", "5. Bottom Half ⬇️", "6. Center 🎯"}
 						set chosenSizeList to choose from list sizeOptions with prompt ("Choose your preferred window size:" & return) default items {item 1 of sizeOptions} with title "OmniSearch Setup (3/5)"
 						if chosenSizeList is not false then
@@ -185,7 +186,7 @@ on run {input, parameters}
 					end if
 					
 					set engineOptions to {"1. Apple Marketing 📺", "2. Apple Music 🎵", "3. Google 🔍"}
-					set chosenEnginesList to choose from list engineOptions with prompt ("Select the search engines you want to enable:" & return & "(Hold Command ⌘ to select multiple)" & return) default items {item 1 of engineOptions} with title "OmniSearch Setup (4/5)" with multiple selections allowed
+					set chosenEnginesList to choose from list engineOptions with prompt ("Select the search engines you want multiple locales for:" & return & "(Hold Command ⌘ to select multiple)" & return) default items {item 1 of engineOptions} with title "OmniSearch Setup (4/5)" with multiple selections allowed
 					
 					set cleanTargetList to {}
 					if chosenEnginesList is not false then
@@ -283,7 +284,7 @@ on run {input, parameters}
 				display dialog finishText with title "OmniSearch Setup Complete" buttons {"Awesome!"} default button "Awesome!" with icon note
 			end tell -- END UI BLOCK
 			
-			-- Generate desktop file
+			-- Generate desktop file only if it doesn't already exist to prevent permission errors
 			set desktopFolder to POSIX path of (path to desktop folder)
 			set detailsFile to desktopFolder & "OmniSearch Setup Details.txt"
 			
@@ -302,7 +303,9 @@ on run {input, parameters}
 				"Or 🗑️ Delete the preferences file from the path shown above" & return & return & ¬
 				"============================================="
 			
-			do shell script "echo " & quoted form of fileContent & " > " & quoted form of detailsFile
+			try
+				do shell script "if [ ! -f " & quoted form of detailsFile & " ]; then echo " & quoted form of fileContent & " > " & quoted form of detailsFile & "; fi"
+			end try
 			
 			set oldDelims to AppleScript's text item delimiters
 			set AppleScript's text item delimiters to "|"
@@ -378,7 +381,7 @@ on run {input, parameters}
 					-- Compare versions
 					if remoteVersion > currentVersion then
 						-- Force the dialog to the absolute frontmost layer
-						tell application (path to frontmost application as string)
+						tell application "System Events"
 							set dialogResult to display dialog "A new version of Omni Search (v" & remoteVersionString & ") is available!" & return & return & "You are currently running v" & currentVersion & ". Would you like to download the update?" with title "Omni Search Update" buttons {"Skip for now", "Open Website"} default button "Open Website"
 							
 							if button returned of dialogResult is "Open Website" then
@@ -561,8 +564,8 @@ on run {input, parameters}
 					set rCount to rCount + 1
 				end repeat
 				
-				-- Ensure the frontmost application presents the list so it doesn't get hidden by the hotkey runner
-				tell application (path to frontmost application as string)
+				-- Ensure System Events presents the list so it doesn't get hidden by the hotkey runner
+				tell application "System Events"
 					activate
 					set regionChoice to choose from list numberedRegions with prompt ("Select Region:" & return) default items {item 1 of numberedRegions} with title "OmniSearch"
 				end tell
@@ -694,6 +697,40 @@ on run {input, parameters}
 								set current tab to last tab
 								set URL of current tab to targetURL
 								set tabReused to true
+							else if openMode is "SmartMode" then
+								set baseDomain to ""
+								try
+									set oldDelims to AppleScript's text item delimiters
+									set AppleScript's text item delimiters to "://"
+									if (count of text items of targetURL) > 1 then
+										set domainPart to text item 2 of targetURL
+										set AppleScript's text item delimiters to "/"
+										set baseDomain to text item 1 of domainPart
+									end if
+									set AppleScript's text item delimiters to oldDelims
+								end try
+
+								if baseDomain is not "" then
+									try
+										set allURLs to URL of tabs
+										set totalTabs to count of allURLs
+										repeat with i from 1 to totalTabs
+											if (item i of allURLs) as string contains baseDomain then
+												set URL of tab i to targetURL
+												set current tab to tab i
+												set tabReused to true
+												exit repeat
+											end if
+										end repeat
+									end try
+								end if
+
+								if not tabReused then
+									make new tab at end of tabs with properties {URL:"about:blank"}
+									set current tab to last tab
+									set URL of current tab to targetURL
+									set tabReused to true
+								end if
 							else if openMode contains "Update Tab" then
 								
 								-- PRIMARY (URL FINGERPRINTING): Scan all tabs for the exact URL
