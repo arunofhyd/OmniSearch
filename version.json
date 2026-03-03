@@ -1,0 +1,60 @@
+{
+  "versions": [
+    {
+      "version": "1.1",
+      "link": "https://www.icloud.com/shortcuts/4c15fe51033044538b93528655f03fed",
+      "subtitle": "With Auto-Updater",
+      "features": [
+        {
+          "icon": "fa-sync",
+          "title": "Auto-Updater:",
+          "description": "Silent background checks keep you updated seamlessly.",
+          "secondary": false
+        },
+        {
+          "icon": "fa-shield-halved",
+          "title": "WAF Bypass:",
+          "description": "Advanced URL sanitization for enterprise firewalls.",
+          "secondary": false
+        },
+        {
+          "icon": "fa-window-restore",
+          "title": "Session Hardening:",
+          "description": "Perfect PID tracking for Safari restarts.",
+          "secondary": false
+        }
+      ]
+    },
+    {
+      "version": "1.0",
+      "link": "https://www.icloud.com/shortcuts/d0175e786d0446a0afd7e1a53f17197a",
+      "subtitle": "Safe & Production Ready",
+      "features": [
+        {
+          "icon": "fa-shield-halved",
+          "title": "WAF Bypass:",
+          "description": "Advanced URL sanitization for enterprise firewalls.",
+          "secondary": true
+        },
+        {
+          "icon": "fa-window-restore",
+          "title": "Session Hardening:",
+          "description": "Perfect PID tracking for Safari restarts.",
+          "secondary": true
+        },
+        {
+          "icon": "fa-cube",
+          "title": "Core Foundation:",
+          "description": "The original Omni Search native experience.",
+          "secondary": true
+        },
+        {
+          "icon": "fa-circle-info",
+          "title": "*",
+          "description": "Manual updates only.",
+          "secondary": true
+        }
+      ]
+    }
+  ]
+}
