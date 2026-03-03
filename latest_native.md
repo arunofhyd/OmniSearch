@@ -6,6 +6,17 @@
 on run {input, parameters}
 	with timeout of 30 seconds
 		set originalApp to path to frontmost application as string
+
+		-- PRE-FLIGHT APP CHECK (Hybrid Timeout)
+		set uiApp to originalApp
+		try
+			with timeout of 1 second
+				tell application uiApp to get version
+			end timeout
+		on error
+			set uiApp to "System Events"
+		end try
+
 		-- 1. GET THE INPUT: 
 		set searchTerm to (item 1 of input) as string
 		
@@ -32,7 +43,7 @@ on run {input, parameters}
 			try
 				do shell script "open " & quoted form of prefsFile
 			on error
-				tell application "System Events"
+				tell application uiApp
 					activate
 					display dialog "Preferences file not found. Try searching for 'omnireset' to generate it." buttons {"OK"} default button "OK"
 				end tell
@@ -145,8 +156,7 @@ on run {input, parameters}
 		-- SETUP WIZARD
 		-- ==========================================
 		if isFirstRun then
-			-- Wrap the ENTIRE UI process inside System Events to guarantee it shows up during a hotkey trigger
-			tell application "System Events"
+			tell application uiApp
 				activate
 				set welcomeText to "Welcome to OmniSearch! 🚀" & return & return
 				set welcomeText to welcomeText & "Let's quickly set up your preferences."
@@ -448,8 +458,7 @@ on run {input, parameters}
 					set rCount to rCount + 1
 				end repeat
 				
-				-- Ensure System Events presents the list so it doesn't get hidden by the hotkey runner
-				tell application "System Events"
+				tell application uiApp
 					activate
 					set regionChoice to choose from list numberedRegions with prompt ("Select Region:" & return) default items {item 1 of numberedRegions} with title "OmniSearch"
 				end tell
