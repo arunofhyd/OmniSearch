@@ -66,7 +66,7 @@ on run {input, parameters}
 	if shouldCheck then
 		try
 			-- Pinging the server with a 2-second timeout.
-			-- We use 'awk' to extract just the first word (version number) from the first line of the new multi-line format.
+			-- We use grep and cut to extract the version number from the JSON file.
 			set remoteVersionString to do shell script "curl -s --max-time 2 https://omniisearch.netlify.app/version.json | grep -o '\"version\": *\"[^\"]*\"' | head -n 1 | cut -d'\"' -f4"
 			
 			if remoteVersionString is not "" then
