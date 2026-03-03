@@ -4,24 +4,22 @@
       "version": "1.1",
       "link": "https://www.icloud.com/shortcuts/4c15fe51033044538b93528655f03fed",
       "subtitle": "With Auto-Updater",
+      "secondary": false,
       "features": [
         {
           "icon": "fa-sync",
           "title": "Auto-Updater:",
-          "description": "Silent background checks keep you updated seamlessly.",
-          "secondary": false
+          "description": "Silent background checks keep you updated seamlessly."
         },
         {
           "icon": "fa-shield-halved",
           "title": "WAF Bypass:",
-          "description": "Advanced URL sanitization for enterprise firewalls.",
-          "secondary": false
+          "description": "Advanced URL sanitization for enterprise firewalls."
         },
         {
           "icon": "fa-window-restore",
           "title": "Session Hardening:",
-          "description": "Perfect PID tracking for Safari restarts.",
-          "secondary": false
+          "description": "Perfect PID tracking for Safari restarts."
         }
       ]
     },
@@ -29,30 +27,27 @@
       "version": "1.0",
       "link": "https://www.icloud.com/shortcuts/d0175e786d0446a0afd7e1a53f17197a",
       "subtitle": "Safe & Production Ready",
+      "secondary": true,
       "features": [
         {
           "icon": "fa-shield-halved",
           "title": "WAF Bypass:",
-          "description": "Advanced URL sanitization for enterprise firewalls.",
-          "secondary": true
+          "description": "Advanced URL sanitization for enterprise firewalls."
         },
         {
           "icon": "fa-window-restore",
           "title": "Session Hardening:",
-          "description": "Perfect PID tracking for Safari restarts.",
-          "secondary": true
+          "description": "Perfect PID tracking for Safari restarts."
         },
         {
           "icon": "fa-cube",
           "title": "Core Foundation:",
-          "description": "The original Omni Search native experience.",
-          "secondary": true
+          "description": "The original Omni Search native experience."
         },
         {
           "icon": "fa-circle-info",
           "title": "*",
-          "description": "Manual updates only.",
-          "secondary": true
+          "description": "Manual updates only."
         }
       ]
     }
