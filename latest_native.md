@@ -99,7 +99,7 @@ on run {input, parameters}
 		-- DATA DRIVEN LOCALE LIST
 		set localeData to {¬
 			"en_US|🇺🇸", "en_GB|🇬🇧", "en_IN|🇮🇳", "en_CA|🇨🇦", "en_AU|🇦🇺", "en_NZ|🇳🇿", ¬
-			"en_ZA|🇿🇦", "ar_SA|🇸🇦", "hi_IN|🇮🇳"}
+			"en_SG|🇸🇬", "en_ZA|🇿🇦", "ar_SA|🇸🇦", "hi_IN|🇮🇳"}
 		
 		-- Default Variables
 		set openMode to "New Window Update Tab"
