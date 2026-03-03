@@ -291,10 +291,7 @@ on run {input, parameters}
 				display dialog finishText with title "OmniSearch Setup Complete" buttons {"Awesome!"} default button "Awesome!" with icon note
 			end tell -- END UI BLOCK
 			
-			-- Generate desktop file only if it doesn't already exist to prevent permission errors
-			set desktopFolder to POSIX path of (path to desktop folder)
-			set detailsFile to desktopFolder & "OmniSearch Setup Details.txt"
-			
+			-- Generate desktop file using dual-fallback to ensure overwrites succeed without Sandbox errors
 			set fileContent to "=============================================" & return & ¬
 				"         OmniSearch Configuration            " & return & ¬
 				"=============================================" & return & return & ¬
@@ -311,7 +308,22 @@ on run {input, parameters}
 				"============================================="
 			
 			try
-				do shell script "if [ ! -f " & quoted form of detailsFile & " ]; then echo " & quoted form of fileContent & " > " & quoted form of detailsFile & "; fi"
+				set asDesktopFolder to (path to desktop as text)
+				set asDetailsFile to asDesktopFolder & "OmniSearch Setup Details.txt"
+				set fileReference to open for access file asDetailsFile with write permission
+				set eof of fileReference to 0
+				write fileContent to fileReference as «class utf8»
+				close access fileReference
+			on error
+				try
+					close access file asDetailsFile
+				end try
+				try
+					set posixDesktopFolder to POSIX path of (path to desktop folder)
+					set posixDetailsFile to posixDesktopFolder & "OmniSearch Setup Details.txt"
+					do shell script "rm -f " & quoted form of posixDetailsFile
+					do shell script "echo " & quoted form of fileContent & " > " & quoted form of posixDetailsFile
+				end try
 			end try
 			
 			set oldDelims to AppleScript's text item delimiters
