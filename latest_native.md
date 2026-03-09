@@ -732,8 +732,13 @@ on run {input, parameters}
 			end if
 			
 			try
-				set activeWinID to id of window 1
-				set activeTabIndex to index of current tab of window 1
+				if foundWindow and tabReused then
+					set activeWinID to storedID
+					set activeTabIndex to index of current tab of window id storedID
+				else
+					set activeWinID to id of window 1
+					set activeTabIndex to index of current tab of window 1
+				end if
 			end try
 		end tell
 		
