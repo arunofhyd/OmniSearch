@@ -116,7 +116,7 @@ on run {input, parameters}
 			"en_SG|🇸🇬", "en_ZA|🇿🇦", "ar_SA|🇸🇦", "hi_IN|🇮🇳"}
 		
 		-- Default Variables
-		set openMode to "SmartMode"
+		set openMode to "SmartMode New Window"
 		set windowSize to "fullscreen"
 		set mktTargets to ""
 		set musTargets to ""
@@ -170,18 +170,19 @@ on run {input, parameters}
 				set validGoog to {"Google (en_US) 🇺🇸"}
 				
 				if button returned of welcomeResponse is "Let's Go!" then
-					set modeOptions to {"1. SmartMode (Default) 🧠", "2. New Window Update Tab 🪟", "3. New Window New Tab 🗂️", "4. Same Window New Tab ➕", "5. Same Window Update Tab 🎯"}
+					set modeOptions to {"1. SmartMode New Window (Default) 🧠🪟", "2. SmartMode Same Window 🧠➕", "3. New Window Update Tab 🪟", "4. New Window New Tab 🗂️", "5. Same Window New Tab ➕", "6. Same Window Update Tab 🎯"}
 					set chosenModeList to choose from list modeOptions with prompt ("How would you like OmniSearch to open your searches?" & return) default items {item 1 of modeOptions} with title "OmniSearch Setup (2/5)"
 					if chosenModeList is not false then
 						set chosenMode to item 1 of chosenModeList
-						if chosenMode contains "SmartMode" then set openMode to "SmartMode"
+						if chosenMode contains "SmartMode New Window" then set openMode to "SmartMode New Window"
+						if chosenMode contains "SmartMode Same Window" then set openMode to "SmartMode Same Window"
 						if chosenMode contains "New Window Update Tab" then set openMode to "New Window Update Tab"
 						if chosenMode contains "New Window New Tab" then set openMode to "New Window New Tab"
 						if chosenMode contains "Same Window New Tab" then set openMode to "Same Window New Tab"
 						if chosenMode contains "Same Window Update Tab" then set openMode to "Same Window Update Tab"
 					end if
 					
-					if openMode contains "New Window" or openMode contains "SmartMode" then
+					if openMode contains "New Window" then
 						set sizeOptions to {"1. Fullscreen 🖥️", "2. Left Half ⬅️", "3. Right Half ➡️", "4. Top Half ⬆️", "5. Bottom Half ⬇️", "6. Center 🎯"}
 						set chosenSizeList to choose from list sizeOptions with prompt ("Choose your preferred window size:" & return) default items {item 1 of sizeOptions} with title "OmniSearch Setup (3/5)"
 						if chosenSizeList is not false then
@@ -693,12 +694,44 @@ on run {input, parameters}
 			set tabReused to false
 			set foundWindow to false
 			
-			if openMode is "Same Window New Tab" and (count of windows) > 0 then
+			if (openMode is "Same Window New Tab" or openMode is "SmartMode Same Window") and (count of windows) > 0 then
 				tell window 1
-					-- ASYNC OPTIMIZATION: Make tab first, then set URL to prevent timeout
-					make new tab at end of tabs with properties {URL:"about:blank"}
-					set current tab to last tab
-					set URL of current tab to targetURL
+					if openMode is "SmartMode Same Window" then
+						set baseDomain to ""
+						try
+							set oldDelims to AppleScript's text item delimiters
+							set AppleScript's text item delimiters to "://"
+							if (count of text items of targetURL) > 1 then
+								set domainPart to text item 2 of targetURL
+								set AppleScript's text item delimiters to "/"
+								set baseDomain to text item 1 of domainPart
+							end if
+							set AppleScript's text item delimiters to oldDelims
+						end try
+
+						if baseDomain is not "" then
+							try
+								set allURLs to URL of tabs
+								set totalTabs to count of allURLs
+								repeat with i from 1 to totalTabs
+									if (item i of allURLs) as string contains baseDomain then
+										set URL of tab i to targetURL
+										set current tab to tab i
+										set tabReused to true
+										exit repeat
+									end if
+								end repeat
+							end try
+						end if
+					end if
+
+					if not tabReused then
+						-- ASYNC OPTIMIZATION: Make tab first, then set URL to prevent timeout
+						make new tab at end of tabs with properties {URL:"about:blank"}
+						set current tab to last tab
+						set URL of current tab to targetURL
+					end if
+
 					if alwaysFocus is true then
 						set visible to true
 						set miniaturized to false
@@ -717,7 +750,7 @@ on run {input, parameters}
 								set current tab to last tab
 								set URL of current tab to targetURL
 								set tabReused to true
-							else if openMode is "SmartMode" then
+							else if openMode is "SmartMode New Window" then
 								set baseDomain to ""
 								try
 									set oldDelims to AppleScript's text item delimiters
