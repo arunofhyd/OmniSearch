@@ -6,7 +6,7 @@
 on run {input, parameters}
 	with timeout of 30 seconds
 		set originalApp to path to frontmost application as string
-
+		
 		-- PRE-FLIGHT APP CHECK (Hybrid Timeout)
 		set uiApp to originalApp
 		try
@@ -16,7 +16,7 @@ on run {input, parameters}
 		on error
 			set uiApp to "System Events"
 		end try
-
+		
 		-- 1. GET THE INPUT: 
 		set searchTerm to (item 1 of input) as string
 		
@@ -593,13 +593,13 @@ on run {input, parameters}
 							end if
 							set AppleScript's text item delimiters to oldDelims
 						end try
-
+						
 						if baseDomain is not "" then
 							try
 								set allURLs to URL of tabs
 								set totalTabs to count of allURLs
 								repeat with i from 1 to totalTabs
-									if (item i of allURLs) as string contains baseDomain then
+									if ((item i of allURLs) as string) contains baseDomain then
 										set URL of tab i to targetURL
 										set current tab to tab i
 										set tabReused to true
@@ -609,14 +609,14 @@ on run {input, parameters}
 							end try
 						end if
 					end if
-
+					
 					if not tabReused then
 						-- ASYNC OPTIMIZATION: Make tab first, then set URL to prevent timeout
 						make new tab at end of tabs with properties {URL:"about:blank"}
 						set current tab to last tab
 						set URL of current tab to targetURL
 					end if
-
+					
 					if alwaysFocus is true then
 						set visible to true
 						set miniaturized to false
@@ -647,13 +647,13 @@ on run {input, parameters}
 									end if
 									set AppleScript's text item delimiters to oldDelims
 								end try
-
+								
 								if baseDomain is not "" then
 									try
 										set allURLs to URL of tabs
 										set totalTabs to count of allURLs
 										repeat with i from 1 to totalTabs
-											if (item i of allURLs) as string contains baseDomain then
+											if ((item i of allURLs) as string) contains baseDomain then
 												set URL of tab i to targetURL
 												set current tab to tab i
 												set tabReused to true
@@ -662,7 +662,7 @@ on run {input, parameters}
 										end repeat
 									end try
 								end if
-
+								
 								if not tabReused then
 									make new tab at end of tabs with properties {URL:"about:blank"}
 									set current tab to last tab
