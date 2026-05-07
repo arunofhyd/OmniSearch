@@ -167,7 +167,7 @@ on run {input, parameters}
 				set validGoog to {"Google (en_US) 🇺🇸"}
 				
 				if button returned of welcomeResponse is "Let's Go!" then
-					set modeOptions to {"1. SmartMode New Window (Default) 🧠🪟", "2. SmartMode Same Window 🧠➕", "3. New Window Update Tab 🪟", "4. New Window New Tab 🗂️", "5. Same Window New Tab ➕", "6. Same Window Update Tab 🎯"}
+					set modeOptions to {"1. SmartMode New Window (Default) 🧠🪟", "2. SmartMode Same Window 🧠➕"}
 					set chosenModeList to choose from list modeOptions with prompt ("How would you like OmniSearch to open your searches?" & return) default items {item 1 of modeOptions} with title "OmniSearch Setup (2/5)"
 					if chosenModeList is not false then
 						set chosenMode to item 1 of chosenModeList
@@ -599,7 +599,7 @@ on run {input, parameters}
 								set allURLs to URL of tabs
 								set totalTabs to count of allURLs
 								repeat with i from 1 to totalTabs
-									if (item i of allURLs) as string contains baseDomain then
+									if ((item i of allURLs) as string) contains baseDomain then
 										set URL of tab i to targetURL
 										set current tab to tab i
 										set tabReused to true
@@ -653,7 +653,7 @@ on run {input, parameters}
 										set allURLs to URL of tabs
 										set totalTabs to count of allURLs
 										repeat with i from 1 to totalTabs
-											if (item i of allURLs) as string contains baseDomain then
+											if ((item i of allURLs) as string) contains baseDomain then
 												set URL of tab i to targetURL
 												set current tab to tab i
 												set tabReused to true
