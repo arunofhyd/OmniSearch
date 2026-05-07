@@ -9,7 +9,7 @@ This script includes all the safety features of the standard version but adds an
 on run {input, parameters}
 	with timeout of 30 seconds
 		set originalApp to path to frontmost application as string
-
+		
 		-- PRE-FLIGHT APP CHECK (Hybrid Timeout)
 		set uiApp to originalApp
 		try
@@ -19,7 +19,7 @@ on run {input, parameters}
 		on error
 			set uiApp to "System Events"
 		end try
-
+		
 		-- 1. GET THE INPUT: 
 		set searchTerm to (item 1 of input) as string
 		
@@ -422,10 +422,10 @@ on run {input, parameters}
 									set storedPID to paragraph 1 of cachedData
 									set storedID to (paragraph 2 of cachedData) as integer
 								end try
-
+								
 								tell application "Safari"
 									set updateTargetFound to false
-
+									
 									-- Specific check to see if OmniSearch window is open to prevent work loss
 									if (storedPID is equal to currentSafariPID) and (storedID is not 0) then
 										try
@@ -438,7 +438,7 @@ on run {input, parameters}
 											end if
 										end try
 									end if
-
+									
 									-- If no OmniSearch window, open a NEW window to protect active tabs
 									if not updateTargetFound then
 										make new document with properties {URL:"https://omniisearch.netlify.app"}
@@ -468,24 +468,24 @@ on run {input, parameters}
 		set validMkt to {}
 		set validMus to {}
 		set validGoog to {}
-
+		
 		set oldDelims to AppleScript's text item delimiters
 		set AppleScript's text item delimiters to "|"
-
+		
 		if mktTargets is not "" then
 			set tempItems to text items of mktTargets
 			repeat with tgt in tempItems
 				if tgt contains "(" and tgt contains ")" then set end of validMkt to tgt as string
 			end repeat
 		end if
-
+		
 		if musTargets is not "" then
 			set tempItems to text items of musTargets
 			repeat with tgt in tempItems
 				if tgt contains "(" and tgt contains ")" then set end of validMus to tgt as string
 			end repeat
 		end if
-
+		
 		if googleTargets is not "" then
 			set tempItems to text items of googleTargets
 			repeat with tgt in tempItems
@@ -493,16 +493,16 @@ on run {input, parameters}
 			end repeat
 		end if
 		set AppleScript's text item delimiters to oldDelims
-
+		
 		if (count of validMkt) is 0 then set end of validMkt to "Apple Marketing (en_US) 🇺🇸"
 		if (count of validMus) is 0 then set end of validMus to "Apple Music (en_US) 🇺🇸"
 		if (count of validGoog) is 0 then set end of validGoog to "Google (en_US) 🇺🇸"
-
+		
 		set userSavedTargetsList to validMkt & validMus & validGoog
 		set customBounds to {100, 100, 1200, 800}
 		set alwaysFocus to true
 		set targetURL to ""
-
+		
 		-- ==========================================
 		-- 5. SMART TARGET MENU & DYNAMIC URL GENERATOR
 		-- ==========================================
@@ -708,13 +708,13 @@ on run {input, parameters}
 							end if
 							set AppleScript's text item delimiters to oldDelims
 						end try
-
+						
 						if baseDomain is not "" then
 							try
 								set allURLs to URL of tabs
 								set totalTabs to count of allURLs
 								repeat with i from 1 to totalTabs
-									if (item i of allURLs) as string contains baseDomain then
+									if ((item i of allURLs) as string) contains baseDomain then
 										set URL of tab i to targetURL
 										set current tab to tab i
 										set tabReused to true
@@ -724,14 +724,14 @@ on run {input, parameters}
 							end try
 						end if
 					end if
-
+					
 					if not tabReused then
 						-- ASYNC OPTIMIZATION: Make tab first, then set URL to prevent timeout
 						make new tab at end of tabs with properties {URL:"about:blank"}
 						set current tab to last tab
 						set URL of current tab to targetURL
 					end if
-
+					
 					if alwaysFocus is true then
 						set visible to true
 						set miniaturized to false
@@ -762,13 +762,13 @@ on run {input, parameters}
 									end if
 									set AppleScript's text item delimiters to oldDelims
 								end try
-
+								
 								if baseDomain is not "" then
 									try
 										set allURLs to URL of tabs
 										set totalTabs to count of allURLs
 										repeat with i from 1 to totalTabs
-											if (item i of allURLs) as string contains baseDomain then
+											if ((item i of allURLs) as string) contains baseDomain then
 												set URL of tab i to targetURL
 												set current tab to tab i
 												set tabReused to true
@@ -777,7 +777,7 @@ on run {input, parameters}
 										end repeat
 									end try
 								end if
-
+								
 								if not tabReused then
 									make new tab at end of tabs with properties {URL:"about:blank"}
 									set current tab to last tab
