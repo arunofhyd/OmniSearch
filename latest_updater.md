@@ -133,7 +133,8 @@ on run {input, parameters}
 					set prefLines to paragraphs of cachedPrefs
 					set foundData to false
 					
-					repeat with p in prefLines
+					repeat with p_idx from 1 to count of prefLines
+						set p to item p_idx of prefLines
 						if p starts with "Mode: " then
 							set openMode to text 7 thru -1 of p
 							set foundData to true
@@ -201,7 +202,8 @@ on run {input, parameters}
 					
 					set cleanTargetList to {}
 					if chosenEnginesList is not false then
-						repeat with chosenEng in chosenEnginesList
+						repeat with chosenEng_idx from 1 to count of chosenEnginesList
+							set chosenEng to item chosenEng_idx of chosenEnginesList
 							set oldDelims to AppleScript's text item delimiters
 							set AppleScript's text item delimiters to " "
 							set engPieces to text items of chosenEng
@@ -209,7 +211,8 @@ on run {input, parameters}
 							set AppleScript's text item delimiters to oldDelims
 							
 							set filteredLocaleData to {}
-							repeat with locItem in localeData
+							repeat with locItem_idx from 1 to count of localeData
+								set locItem to item locItem_idx of localeData
 								if (engName contains "Apple") and (locItem contains "hi_IN") then
 									-- Skip hi_IN for Apple services
 								else
@@ -220,7 +223,8 @@ on run {input, parameters}
 							set totalLocales to count of filteredLocaleData
 							set locOptions to {"0. [ADD ALL REGIONS] 🌍"}
 							set optCounter to 1
-							repeat with locItem in filteredLocaleData
+							repeat with locItem_idx from 1 to count of filteredLocaleData
+								set locItem to item locItem_idx of filteredLocaleData
 								set oldDelims to AppleScript's text item delimiters
 								set AppleScript's text item delimiters to "|"
 								set locCode to text item 1 of locItem
@@ -241,12 +245,14 @@ on run {input, parameters}
 							
 							if chosenLocales is not false then
 								set addAll to false
-								repeat with checkLoc in chosenLocales
+								repeat with checkLoc_idx from 1 to count of chosenLocales
+									set checkLoc to item checkLoc_idx of chosenLocales
 									if checkLoc contains "[ADD ALL REGIONS]" then set addAll to true
 								end repeat
 								
 								if addAll then
-									repeat with locItem in filteredLocaleData
+									repeat with locItem_idx from 1 to count of filteredLocaleData
+										set locItem to item locItem_idx of filteredLocaleData
 										set oldDelims to AppleScript's text item delimiters
 										set AppleScript's text item delimiters to "|"
 										set pureCode to text item 1 of locItem
@@ -255,7 +261,8 @@ on run {input, parameters}
 										set end of cleanTargetList to engName & " (" & pureCode & ") " & pureFlag
 									end repeat
 								else
-									repeat with cLoc in chosenLocales
+									repeat with cLoc_idx from 1 to count of chosenLocales
+										set cLoc to item cLoc_idx of chosenLocales
 										set oldDelims to AppleScript's text item delimiters
 										set AppleScript's text item delimiters to ". "
 										set cleanLoc to text item 2 of cLoc
@@ -274,7 +281,8 @@ on run {input, parameters}
 					set validMkt to {}
 					set validMus to {}
 					set validGoog to {}
-					repeat with tgt in cleanTargetList
+					repeat with tgt_idx from 1 to count of cleanTargetList
+						set tgt to item tgt_idx of cleanTargetList
 						if tgt starts with "Apple Marketing" then set end of validMkt to tgt as string
 						if tgt starts with "Apple Music" then set end of validMus to tgt as string
 						if tgt starts with "Google" then set end of validGoog to tgt as string
@@ -344,7 +352,25 @@ on run {input, parameters}
 				"Apple Music: " & musTargets & return & ¬
 				"Google: " & googleTargets
 			
-			do shell script "echo " & quoted form of prefData & " > " & quoted form of prefsFile
+			try
+
+				set fileReference to open for access (POSIX file prefsFile) with write permission
+
+				set eof of fileReference to 0
+
+				write prefData to fileReference as «class utf8»
+
+				close access fileReference
+
+			on error
+
+				try
+
+					close access (POSIX file prefsFile)
+
+				end try
+
+			end try
 		end if
 		
 		-- If they only typed omnireset, we stop the script here so it doesn't search safari for "omnireset"
@@ -474,21 +500,24 @@ on run {input, parameters}
 		
 		if mktTargets is not "" then
 			set tempItems to text items of mktTargets
-			repeat with tgt in tempItems
+			repeat with tgt_idx from 1 to count of tempItems
+				set tgt to item tgt_idx of tempItems
 				if tgt contains "(" and tgt contains ")" then set end of validMkt to tgt as string
 			end repeat
 		end if
 		
 		if musTargets is not "" then
 			set tempItems to text items of musTargets
-			repeat with tgt in tempItems
+			repeat with tgt_idx from 1 to count of tempItems
+				set tgt to item tgt_idx of tempItems
 				if tgt contains "(" and tgt contains ")" then set end of validMus to tgt as string
 			end repeat
 		end if
 		
 		if googleTargets is not "" then
 			set tempItems to text items of googleTargets
-			repeat with tgt in tempItems
+			repeat with tgt_idx from 1 to count of tempItems
+				set tgt to item tgt_idx of tempItems
 				if tgt contains "(" and tgt contains ")" then set end of validGoog to tgt as string
 			end repeat
 		end if
@@ -516,14 +545,7 @@ on run {input, parameters}
 				set baseURL to text item 1 of targetURL
 				set promptText to text item 2 of targetURL
 				
-				set targetChars to {" ", "?", "&", "+"}
-				set replaceChars to {"%20", "%3F", "%26", "%2B"}
-				repeat with i from 1 to count of targetChars
-					set AppleScript's text item delimiters to item i of targetChars
-					set tempPieces to text items of promptText
-					set AppleScript's text item delimiters to item i of replaceChars
-					set promptText to tempPieces as string
-				end repeat
+				set promptText to do shell script "python3 -c 'import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1]))' " & quoted form of promptText
 				
 				set targetURL to baseURL & "?prompt=" & promptText
 				set AppleScript's text item delimiters to oldDelims
@@ -532,7 +554,8 @@ on run {input, parameters}
 			set finalChosenTarget to ""
 			
 			set uniqueEngines to {}
-			repeat with tgt in userSavedTargetsList
+			repeat with tgt_idx from 1 to count of userSavedTargetsList
+				set tgt to item tgt_idx of userSavedTargetsList
 				if tgt is not "" then
 					if tgt starts with "Apple Marketing" and "Apple Marketing" is not in uniqueEngines then set end of uniqueEngines to "Apple Marketing"
 					if tgt starts with "Apple Music" and "Apple Music" is not in uniqueEngines then set end of uniqueEngines to "Apple Music"
@@ -553,7 +576,8 @@ on run {input, parameters}
 			set matchingTargets to {}
 			set availableRegions to {}
 			
-			repeat with tgt in userSavedTargetsList
+			repeat with tgt_idx from 1 to count of userSavedTargetsList
+				set tgt to item tgt_idx of userSavedTargetsList
 				if tgt starts with chosenEngine then
 					set end of matchingTargets to tgt
 					
@@ -576,7 +600,8 @@ on run {input, parameters}
 			if totalAvailableRegions > 1 and (chosenEngine is in {"Apple Marketing", "Apple Music", "Google"}) then
 				set numberedRegions to {}
 				set rCount to 1
-				repeat with reg in availableRegions
+				repeat with reg_idx from 1 to count of availableRegions
+					set reg to item reg_idx of availableRegions
 					if rCount is 1 and totalAvailableRegions > 9 then
 						set numPrefix to "01"
 					else
@@ -712,15 +737,20 @@ on run {input, parameters}
 						if baseDomain is not "" then
 							try
 								set allURLs to URL of tabs
-								set totalTabs to count of allURLs
-								repeat with i from 1 to totalTabs
+								set targetTabIndex to 0
+								repeat with i from 1 to count of allURLs
 									if ((item i of allURLs) as string) contains baseDomain then
-										set URL of tab i to targetURL
-										set current tab to tab i
-										set tabReused to true
+										set targetTabIndex to i
 										exit repeat
 									end if
 								end repeat
+
+								if targetTabIndex > 0 then
+									set targetTab to tab targetTabIndex
+									set URL of targetTab to targetURL
+									set current tab to targetTab
+									set tabReused to true
+								end if
 							end try
 						end if
 					end if
@@ -766,15 +796,20 @@ on run {input, parameters}
 								if baseDomain is not "" then
 									try
 										set allURLs to URL of tabs
-										set totalTabs to count of allURLs
-										repeat with i from 1 to totalTabs
+										set targetTabIndex to 0
+										repeat with i from 1 to count of allURLs
 											if ((item i of allURLs) as string) contains baseDomain then
-												set URL of tab i to targetURL
-												set current tab to tab i
-												set tabReused to true
+												set targetTabIndex to i
 												exit repeat
 											end if
 										end repeat
+
+										if targetTabIndex > 0 then
+											set targetTab to tab targetTabIndex
+											set URL of targetTab to targetURL
+											set current tab to targetTab
+											set tabReused to true
+										end if
 									end try
 								end if
 								
@@ -789,17 +824,21 @@ on run {input, parameters}
 								-- PRIMARY (URL FINGERPRINTING): Scan all tabs for the exact URL
 								if storedURL is not "" then
 									try
-										-- BULK FETCH OPTIMIZATION: Gets all URLs in one AppleEvent to prevent timeout loops
 										set allURLs to URL of tabs
-										set totalTabs to count of allURLs
-										repeat with i from 1 to totalTabs
-											if (item i of allURLs) as string is equal to storedURL then
-												set URL of tab i to targetURL
-												set current tab to tab i
-												set tabReused to true
+										set targetTabIndex to 0
+										repeat with i from 1 to count of allURLs
+											if ((item i of allURLs) as string) is equal to storedURL then
+												set targetTabIndex to i
 												exit repeat
 											end if
 										end repeat
+
+										if targetTabIndex > 0 then
+											set targetTab to tab targetTabIndex
+											set URL of targetTab to targetURL
+											set current tab to targetTab
+											set tabReused to true
+										end if
 									end try
 								end if
 								
@@ -892,10 +931,8 @@ on run {input, parameters}
 		
 		if activeWinID is not 0 then
 			try
-				do shell script "echo " & quoted form of currentPID & " > " & quoted form of cacheFile
-				do shell script "echo " & quoted form of (activeWinID as string) & " >> " & quoted form of cacheFile
-				do shell script "echo " & quoted form of targetURL & " >> " & quoted form of cacheFile
-				do shell script "echo " & quoted form of (activeTabIndex as string) & " >> " & quoted form of cacheFile
+				set combinedCache to currentPID & return & (activeWinID as string) & return & targetURL & return & (activeTabIndex as string)
+				do shell script "printf '%s\n' " & quoted form of combinedCache & " > " & quoted form of cacheFile
 			end try
 		end if
 		
