@@ -352,7 +352,25 @@ on run {input, parameters}
 				"Apple Music: " & musTargets & return & ¬
 				"Google: " & googleTargets
 			
-			do shell script "echo " & quoted form of prefData & " > " & quoted form of prefsFile
+			try
+
+				set fileReference to open for access (POSIX file prefsFile) with write permission
+
+				set eof of fileReference to 0
+
+				write prefData to fileReference as «class utf8»
+
+				close access fileReference
+
+			on error
+
+				try
+
+					close access (POSIX file prefsFile)
+
+				end try
+
+			end try
 		end if
 		
 		-- If they only typed omnireset, we stop the script here so it doesn't search safari for "omnireset"
@@ -527,14 +545,7 @@ on run {input, parameters}
 				set baseURL to text item 1 of targetURL
 				set promptText to text item 2 of targetURL
 				
-				set targetChars to {" ", "?", "&", "+"}
-				set replaceChars to {"%20", "%3F", "%26", "%2B"}
-				repeat with i from 1 to count of targetChars
-					set AppleScript's text item delimiters to item i of targetChars
-					set tempPieces to text items of promptText
-					set AppleScript's text item delimiters to item i of replaceChars
-					set promptText to tempPieces as string
-				end repeat
+				set promptText to do shell script "python3 -c 'import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1]))' " & quoted form of promptText
 				
 				set targetURL to baseURL & "?prompt=" & promptText
 				set AppleScript's text item delimiters to oldDelims
@@ -920,10 +931,8 @@ on run {input, parameters}
 		
 		if activeWinID is not 0 then
 			try
-				do shell script "echo " & quoted form of currentPID & " > " & quoted form of cacheFile
-				do shell script "echo " & quoted form of (activeWinID as string) & " >> " & quoted form of cacheFile
-				do shell script "echo " & quoted form of targetURL & " >> " & quoted form of cacheFile
-				do shell script "echo " & quoted form of (activeTabIndex as string) & " >> " & quoted form of cacheFile
+				set combinedCache to currentPID & return & (activeWinID as string) & return & targetURL & return & (activeTabIndex as string)
+				do shell script "printf '%s\n' " & quoted form of combinedCache & " > " & quoted form of cacheFile
 			end try
 		end if
 		

@@ -184,10 +184,8 @@ on run {input, parameters}
 		try
 			set activeWinID to id of window 1
 			set activeTabIndex to index of current tab of window 1
-			do shell script "echo " & quoted form of currentPID & " > " & quoted form of cacheFile
-			do shell script "echo " & quoted form of (activeWinID as string) & " >> " & quoted form of cacheFile
-			do shell script "echo " & quoted form of targetURL & " >> " & quoted form of cacheFile
-			do shell script "echo " & quoted form of (activeTabIndex as string) & " >> " & quoted form of cacheFile
+			set combinedCache to currentPID & return & (activeWinID as string) & return & targetURL & return & (activeTabIndex as string)
+			do shell script "printf '%s\n' " & quoted form of combinedCache & " > " & quoted form of cacheFile
 		end try
 	end tell
 	
