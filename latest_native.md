@@ -79,12 +79,8 @@ on run {input, parameters}
 		
 		if not isResetCommand then
 			set lowerTerm to do shell script "echo " & quoted form of searchTerm & " | tr '[:upper:]' '[:lower:]'"
-			set isGL to false
-			try
-				set isGL to (do shell script "python3 -c \"import sys, re; t=sys.argv[1].lower().strip(); print('true' if re.search(r'^(?:\\d+\\.\\s*)?guidelines?.*|omniguidelines|gls?$', t) else 'false')\" " & quoted form of searchTerm) is "true"
-			end try
 			
-			if isGL or lowerTerm is "omniguidelines" then
+			if lowerTerm starts with "gl_" or lowerTerm contains "gl_" or lowerTerm is "gl" or lowerTerm is "gls" or lowerTerm contains "guidelines" then
 				set preSelectedEngine to "Guidelines"
 			else if lowerTerm contains "marketingtools.apple.com" or lowerTerm contains "applemediaservices.com" or lowerTerm contains "marketing" then
 				set preSelectedEngine to "Apple Marketing"
@@ -469,8 +465,6 @@ on run {input, parameters}
 					if tgt starts with "Google" and "Google" is not in uniqueEngines then set end of uniqueEngines to "Google"
 				end if
 			end repeat
-			
-			set end of uniqueEngines to "Guidelines 📋"
 			
 			set chosenEngine to ""
 			
