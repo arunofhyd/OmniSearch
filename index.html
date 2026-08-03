@@ -34,9 +34,18 @@
             background-color: var(--bg-color);
             color: var(--text-primary);
             font-family: var(--font-main);
-            overflow-x: hidden;
-            scroll-behavior: smooth;
-            scroll-snap-type: y mandatory;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            padding: 0;
+        }
+
+        .presentation-deck {
+            width: 100vw;
+            height: 100vh;
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: transform;
         }
 
         /* ==========================================================================
@@ -272,8 +281,8 @@
            4. SLIDE LAYOUTS
            ========================================================================== */
         .slide-container {
-            min-height: 100vh;
             height: 100vh;
+            min-height: 100vh;
             width: 100vw;
             display: flex;
             flex-direction: column;
@@ -281,9 +290,8 @@
             align-items: center;
             padding: 5% 0;
             position: relative;
-            scroll-snap-align: start;
-            scroll-snap-stop: always;
             overflow: hidden;
+            box-sizing: border-box;
         }
 
         .content-wrapper {
@@ -1333,6 +1341,9 @@
     <div class="ambient-glow glow-1"></div>
     <div class="ambient-glow glow-2"></div>
 
+    <!-- PRESENTATION DECK WRAPPER -->
+    <main class="presentation-deck" id="presentation-deck">
+
     <!-- ========================================================================
          SLIDE 1: TITLE
          ======================================================================== -->
@@ -1745,6 +1756,7 @@
             </div>
         </div>
     </div>
+    </main>
 
     <!-- ========================================================================
          SCRIPTS: Navigation Scroll-Spy + Version Sync + Animations
@@ -1752,17 +1764,44 @@
     <script>
         document.addEventListener("DOMContentLoaded", () => {
 
-            // --- NAVIGATION SCROLL-SPY ---
+            // --- BUTTERY SMOOTH HARDWARE-ACCELERATED SLIDE NAVIGATOR ---
+            const deck = document.getElementById('presentation-deck');
             const navItems = document.querySelectorAll('.nav-item');
-            const sections = [];
+            const allSlides = Array.from(document.querySelectorAll('.slide-container'));
+            let currentSlideIndex = 0;
+            let isSlideScrolling = false;
 
-            navItems.forEach(item => {
-                const sectionId = item.dataset.section;
-                const sectionEl = document.getElementById(sectionId);
-                if (sectionEl) {
-                    sections.push({ id: sectionId, el: sectionEl, navItem: item });
+            const goToSlideIndex = (index) => {
+                if (index < 0 || index >= allSlides.length) return;
+                currentSlideIndex = index;
+                isSlideScrolling = true;
+
+                deck.style.transform = `translateY(-${currentSlideIndex * 100}vh)`;
+
+                const currentSlide = allSlides[currentSlideIndex];
+                if (currentSlide) {
+                    currentSlide.querySelectorAll('.fade-up').forEach(el => el.classList.add('visible'));
+
+                    let matchId = currentSlide.id;
+                    if (!matchId) {
+                        for (let i = currentSlideIndex; i >= 0; i--) {
+                            if (allSlides[i].id) { matchId = allSlides[i].id; break; }
+                        }
+                    }
+                    if (matchId) {
+                        navItems.forEach(item => {
+                            item.classList.toggle('active', item.dataset.section === matchId);
+                        });
+                    }
                 }
-            });
+
+                setTimeout(() => { isSlideScrolling = false; }, 850);
+            };
+
+            // Trigger animations on initial slide load
+            if (allSlides[0]) {
+                allSlides[0].querySelectorAll('.fade-up').forEach(el => el.classList.add('visible'));
+            }
 
             // Click handler for nav items
             navItems.forEach(item => {
@@ -1771,89 +1810,37 @@
                     const targetId = item.dataset.section;
                     const targetEl = document.getElementById(targetId);
                     if (targetEl) {
-                        targetEl.scrollIntoView({ behavior: 'smooth' });
+                        const targetIdx = allSlides.indexOf(targetEl);
+                        if (targetIdx !== -1) goToSlideIndex(targetIdx);
                     }
                 });
             });
 
-            // Scroll-spy using IntersectionObserver
-            const spyObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const sectionId = entry.target.id;
-                        navItems.forEach(item => {
-                            item.classList.toggle('active', item.dataset.section === sectionId);
-                        });
-                    }
-                });
-            }, {
-                root: null,
-                rootMargin: '-40% 0px -40% 0px',
-                threshold: 0
-            });
-
-            sections.forEach(s => spyObserver.observe(s.el));
-
-            // --- ONE-SCROLL PAGE-BY-PAGE SLIDE NAVIGATOR ---
-            const allSlides = Array.from(document.querySelectorAll('.slide-container'));
-            let isSlideScrolling = false;
-            let currentSlideIndex = 0;
-
-            const goToSlideIndex = (index) => {
-                if (index >= 0 && index < allSlides.length) {
-                    currentSlideIndex = index;
-                    isSlideScrolling = true;
-                    allSlides[index].scrollIntoView({ behavior: 'smooth' });
-                    setTimeout(() => { isSlideScrolling = false; }, 700);
-                }
-            };
-
-            // Wheel event: 1 scroll tick = 1 page shift
+            // Wheel event: 1 scroll tick = 1 page glide
             window.addEventListener('wheel', (e) => {
-                // Don't intercept when hovering horizontal carousel or during active text editing
                 if (e.target.closest('.version-carousel') || document.body.classList.contains('edit-mode-active')) return;
                 
                 e.preventDefault();
                 if (isSlideScrolling) return;
 
-                if (e.deltaY > 15) {
-                    if (currentSlideIndex < allSlides.length - 1) {
-                        goToSlideIndex(currentSlideIndex + 1);
-                    }
-                } else if (e.deltaY < -15) {
-                    if (currentSlideIndex > 0) {
-                        goToSlideIndex(currentSlideIndex - 1);
-                    }
+                if (e.deltaY > 10) {
+                    goToSlideIndex(currentSlideIndex + 1);
+                } else if (e.deltaY < -10) {
+                    goToSlideIndex(currentSlideIndex - 1);
                 }
             }, { passive: false });
 
-            // Arrow Key Navigation (Up / Down / PageUp / PageDown / Space)
+            // Keyboard navigation (ArrowDown / ArrowUp / PageDown / PageUp / Space)
             window.addEventListener('keydown', (e) => {
                 if (document.body.classList.contains('edit-mode-active')) return;
                 if (['ArrowDown', 'PageDown'].includes(e.code) || (e.code === 'Space' && !e.shiftKey)) {
-                    if (currentSlideIndex < allSlides.length - 1) {
-                        e.preventDefault();
-                        goToSlideIndex(currentSlideIndex + 1);
-                    }
+                    e.preventDefault();
+                    goToSlideIndex(currentSlideIndex + 1);
                 } else if (['ArrowUp', 'PageUp'].includes(e.code) || (e.code === 'Space' && e.shiftKey)) {
-                    if (currentSlideIndex > 0) {
-                        e.preventDefault();
-                        goToSlideIndex(currentSlideIndex - 1);
-                    }
+                    e.preventDefault();
+                    goToSlideIndex(currentSlideIndex - 1);
                 }
             });
-
-            // Keep currentSlideIndex synced when clicking nav links or scrolling
-            const slideSyncObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting && !isSlideScrolling) {
-                        const idx = allSlides.indexOf(entry.target);
-                        if (idx !== -1) currentSlideIndex = idx;
-                    }
-                });
-            }, { threshold: 0.5 });
-
-            allSlides.forEach(slide => slideSyncObserver.observe(slide));
 
             // --- PRESENTER FULLSCREEN MODE ---
             const fsBtn = document.getElementById('fullscreen-btn');
