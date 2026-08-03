@@ -166,20 +166,20 @@
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.15);
             color: white;
-            padding: 6px 12px;
+            width: 34px;
+            height: 34px;
             border-radius: 8px;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            font-weight: 500;
+            justify-content: center;
+            font-size: 13px;
             transition: all 0.3s ease;
         }
 
         .nav-fullscreen-btn:hover {
             background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.05);
+            transform: scale(1.08);
             color: var(--accent-blue);
         }
 
@@ -1277,7 +1277,7 @@
                 <a href="#sec-download"><i class="fa-solid fa-cloud-arrow-down"></i> <span class="nav-label-text">Download</span></a>
             </li>
         </ul>
-        <button class="nav-fullscreen-btn" id="fullscreen-btn" title="Presenter Mode (Fullscreen)"><i class="fa-solid fa-expand"></i> <span>Presenter</span></button>
+        <button class="nav-fullscreen-btn" id="fullscreen-btn" title="Presenter Mode (Fullscreen)"><i class="fa-solid fa-expand"></i></button>
     </nav>
 
     <!-- Ambient Background Glows -->
@@ -1490,7 +1490,7 @@
                         <i class="fa-solid fa-magnifying-glass"></i> <span style="font-weight: 600;">Omni Search</span>
                     </div>
                     <div class="mac-menu-body">
-                        <div class="mac-menu-item"><span>1. Apple Music (IN / US / GB)</span></div>
+                        <div class="mac-menu-item"><span>1. Apple Music</span></div>
                         <div class="mac-menu-item"><span>2. Marketing Media Tools</span></div>
                         <div class="mac-menu-item"><span>3. Wikipedia Research</span></div>
                         <div class="mac-menu-item"><span>4. Internal Knowledge Portal</span></div>
@@ -1757,9 +1757,9 @@
                 });
                 document.addEventListener('fullscreenchange', () => {
                     if (!document.fullscreenElement) {
-                        fsBtn.innerHTML = '<i class="fa-solid fa-expand"></i> <span>Presenter</span>';
+                        fsBtn.innerHTML = '<i class="fa-solid fa-expand"></i>';
                     } else {
-                        fsBtn.innerHTML = '<i class="fa-solid fa-compress"></i> <span>Exit</span>';
+                        fsBtn.innerHTML = '<i class="fa-solid fa-compress"></i>';
                     }
                 });
             }
