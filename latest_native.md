@@ -53,7 +53,7 @@ on run {input, parameters}
 				end tell
 			end try
 			return (searchTerm as string)
-		else if searchTerm contains "omniguidelines" then
+		else if searchTerm contains "omnigl_" then
 			try
 				do shell script "open " & quoted form of guidelinesFile
 			on error
@@ -313,8 +313,10 @@ on run {input, parameters}
 				set finishText to "Setup Complete! 🎉" & return & return
 				set finishText to finishText & "Your settings have been saved to:" & return & "Home > OmniSearch > OmniSearch_Preferences.txt" & return & return
 				set finishText to finishText & "💡 MAGIC SHORTCUTS:" & return
-				set finishText to finishText & "• Search 'omnisettings' to quickly open this file." & return
-				set finishText to finishText & "• Search 'omnireset' to run this setup wizard again." & return & return
+				set finishText to finishText & "• Search 'gl_' to pick a Project Guideline." & return
+				set finishText to finishText & "• Search 'omnigl_' to edit your Guidelines links doc." & return
+				set finishText to finishText & "• Search 'omnisettings' to open preferences." & return
+				set finishText to finishText & "• Search 'omnireset' to run setup wizard." & return & return
 				set finishText to finishText & "A copy of these details has been saved to your Desktop."
 				
 				display dialog finishText with title "OmniSearch Setup Complete" buttons {"Awesome!"} default button "Awesome!" with icon note
