@@ -160,9 +160,15 @@
             animation: navIndicator 0.3s ease;
         }
 
-        .nav-fullscreen-btn {
+        .nav-right-actions {
             position: absolute;
             right: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-btn-icon {
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.15);
             color: white;
@@ -177,10 +183,37 @@
             transition: all 0.3s ease;
         }
 
-        .nav-fullscreen-btn:hover {
+        .nav-btn-icon:hover {
             background: rgba(255, 255, 255, 0.2);
             transform: scale(1.08);
             color: var(--accent-blue);
+        }
+
+        .nav-btn-icon.active {
+            background: rgba(41, 151, 255, 0.25);
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+            box-shadow: 0 0 12px rgba(41, 151, 255, 0.3);
+        }
+
+        /* Edit Mode Highlights */
+        body.edit-mode-active [data-editable] {
+            outline: 1px dashed rgba(41, 151, 255, 0.5);
+            outline-offset: 4px;
+            cursor: text;
+            transition: outline 0.2s ease, background-color 0.2s ease;
+        }
+
+        body.edit-mode-active [data-editable]:hover {
+            outline: 2px solid var(--accent-blue);
+            background-color: rgba(41, 151, 255, 0.06);
+            border-radius: 4px;
+        }
+
+        body.edit-mode-active [data-editable]:focus {
+            outline: 2px solid var(--accent-green);
+            background-color: rgba(48, 209, 88, 0.08);
+            border-radius: 4px;
         }
 
         .presenter-name-br {
@@ -1276,8 +1309,12 @@
             <li class="nav-item" data-section="sec-download">
                 <a href="#sec-download"><i class="fa-solid fa-cloud-arrow-down"></i> <span class="nav-label-text">Download</span></a>
             </li>
-        </ul>
-        <button class="nav-fullscreen-btn" id="fullscreen-btn" title="Presenter Mode (Fullscreen)"><i class="fa-solid fa-expand"></i></button>
+        <div class="nav-right-actions">
+            <button class="nav-btn-icon" id="edit-mode-btn" title="Toggle Live Edit Mode (Click text to edit)"><i class="fa-solid fa-pen-to-square"></i></button>
+            <button class="nav-btn-icon" id="reset-edits-btn" title="Reset All Edits to Default" style="display:none;"><i class="fa-solid fa-rotate-left"></i></button>
+            <button class="nav-btn-icon" id="export-html-btn" title="Export Updated HTML File" style="display:none;"><i class="fa-solid fa-download"></i></button>
+            <button class="nav-btn-icon" id="fullscreen-btn" title="Presenter Mode (Fullscreen)"><i class="fa-solid fa-expand"></i></button>
+        </div>
     </nav>
 
     <!-- Ambient Background Glows -->
@@ -1761,6 +1798,118 @@
                     } else {
                         fsBtn.innerHTML = '<i class="fa-solid fa-compress"></i>';
                     }
+                });
+            }
+
+            // --- INTERACTIVE INLINE EDIT MODE & LOCALSTORAGE PERSISTENCE ---
+            const STORAGE_KEY = 'omnisearch_presentation_edits';
+            const editBtn = document.getElementById('edit-mode-btn');
+            const resetBtn = document.getElementById('reset-edits-btn');
+            const exportBtn = document.getElementById('export-html-btn');
+
+            const editSelectors = [
+                'h1', 'h2', 'h3', 'h4', '.title-slide p', '.presenter-name-br',
+                '.problem-card p', '.body-text-hero', '.feature-title-hero', '.feature-desc-hero',
+                '.step-item p', '.objective-mission', '.kpi-value', '.kpi-label',
+                '.testimonial-quote', '.testimonial-name', '.testimonial-role',
+                '.cta-subtitle', '.mac-menu-item span', '.pillar span'
+            ];
+
+            let isEditMode = false;
+            let editableElements = [];
+
+            let elementIndex = 0;
+            document.querySelectorAll('.slide-container').forEach(slide => {
+                editSelectors.forEach(selector => {
+                    slide.querySelectorAll(selector).forEach(el => {
+                        if (!el.hasAttribute('data-editable-id')) {
+                            el.setAttribute('data-editable-id', `edit-${++elementIndex}`);
+                        }
+                        el.setAttribute('data-editable', 'true');
+                        editableElements.push(el);
+                    });
+                });
+            });
+
+            const restoreEdits = () => {
+                try {
+                    const saved = localStorage.getItem(STORAGE_KEY);
+                    if (saved) {
+                        const edits = JSON.parse(saved);
+                        let restoredCount = 0;
+                        Object.keys(edits).forEach(id => {
+                            const el = document.querySelector(`[data-editable-id="${id}"]`);
+                            if (el) {
+                                el.innerHTML = edits[id];
+                                restoredCount++;
+                            }
+                        });
+                        if (restoredCount > 0 && resetBtn) {
+                            resetBtn.style.display = 'inline-flex';
+                        }
+                    }
+                } catch (e) {
+                    console.error("Failed to restore saved edits:", e);
+                }
+            };
+            restoreEdits();
+
+            const saveEdits = () => {
+                const edits = {};
+                editableElements.forEach(el => {
+                    const id = el.getAttribute('data-editable-id');
+                    if (id) {
+                        edits[id] = el.innerHTML;
+                    }
+                });
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(edits));
+                if (resetBtn) resetBtn.style.display = 'inline-flex';
+            };
+
+            if (editBtn) {
+                editBtn.addEventListener('click', () => {
+                    isEditMode = !isEditMode;
+                    document.body.classList.toggle('edit-mode-active', isEditMode);
+                    editBtn.classList.toggle('active', isEditMode);
+
+                    editableElements.forEach(el => {
+                        el.contentEditable = isEditMode ? 'true' : 'false';
+                        if (isEditMode) {
+                            el.addEventListener('input', saveEdits);
+                        }
+                    });
+
+                    if (exportBtn) exportBtn.style.display = isEditMode ? 'inline-flex' : 'none';
+                    if (resetBtn) resetBtn.style.display = (isEditMode || localStorage.getItem(STORAGE_KEY)) ? 'inline-flex' : 'none';
+                });
+            }
+
+            if (resetBtn) {
+                resetBtn.addEventListener('click', () => {
+                    if (confirm("Reset all custom edits to original default text?")) {
+                        localStorage.removeItem(STORAGE_KEY);
+                        window.location.reload();
+                    }
+                });
+            }
+
+            if (exportBtn) {
+                exportBtn.addEventListener('click', () => {
+                    const clone = document.documentElement.cloneNode(true);
+                    clone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+                    clone.querySelectorAll('.edit-mode-active').forEach(el => el.classList.remove('edit-mode-active'));
+                    clone.querySelectorAll('.active').forEach(el => {
+                        if (el.id === 'edit-mode-btn') el.classList.remove('active');
+                    });
+
+                    const htmlContent = "<!DOCTYPE html>\n" + clone.outerHTML;
+                    const blob = new Blob([htmlContent], { type: 'text/html' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'index.html';
+                    a.click();
+                    URL.revokeObjectURL(url);
                 });
             }
 
