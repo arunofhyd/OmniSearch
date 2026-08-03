@@ -210,6 +210,16 @@
             border-radius: 4px;
         }
 
+        /* Hide edit controls during Fullscreen / Presenter Mode */
+        :fullscreen #edit-mode-btn,
+        :fullscreen #reset-edits-btn,
+        :fullscreen #export-html-btn,
+        :-webkit-full-screen #edit-mode-btn,
+        :-webkit-full-screen #reset-edits-btn,
+        :-webkit-full-screen #export-html-btn {
+            display: none !important;
+        }
+
         body.edit-mode-active [data-editable]:focus {
             outline: 2px solid var(--accent-green);
             background-color: rgba(48, 209, 88, 0.08);
@@ -1796,6 +1806,10 @@
                     if (!document.fullscreenElement) {
                         fsBtn.innerHTML = '<i class="fa-solid fa-expand"></i>';
                     } else {
+                        // Automatically turn off Edit Mode when entering Presenter / Fullscreen Mode
+                        if (isEditMode && editBtn) {
+                            editBtn.click();
+                        }
                         fsBtn.innerHTML = '<i class="fa-solid fa-compress"></i>';
                     }
                 });
