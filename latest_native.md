@@ -78,7 +78,14 @@ on run {input, parameters}
 		set oldDelims to AppleScript's text item delimiters
 		
 		if not isResetCommand then
-			if searchTerm contains "marketingtools.apple.com" or searchTerm contains "applemediaservices.com" then
+			set isGL to false
+			try
+				set isGL to (do shell script "python3 -c \"import sys, re; t=sys.argv[1].lower().strip(); print('true' if re.search(r'\\b(guidelines?|gls?)\\b', t) else 'false')\" " & quoted form of searchTerm) is "true"
+			end try
+			
+			if isGL then
+				set preSelectedEngine to "Guidelines"
+			else if searchTerm contains "marketingtools.apple.com" or searchTerm contains "applemediaservices.com" then
 				set preSelectedEngine to "Apple Marketing"
 				if searchTerm contains "?q=" then
 					set AppleScript's text item delimiters to "?q="
