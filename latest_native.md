@@ -81,10 +81,10 @@ on run {input, parameters}
 			set lowerTerm to do shell script "echo " & quoted form of searchTerm & " | tr '[:upper:]' '[:lower:]'"
 			set isGL to false
 			try
-				set isGL to (do shell script "python3 -c \"import sys, re; t=sys.argv[1].lower().strip(); print('true' if re.search(r'\\b(guidelines?|gls?)\\b|📋', t) else 'false')\" " & quoted form of searchTerm) is "true"
+				set isGL to (do shell script "python3 -c \"import sys, re; t=sys.argv[1].lower().strip(); print('true' if re.search(r'\\b(guidelines?|gls?)\\b|📋|9\\.\\s*guidelines?', t) else 'false')\" " & quoted form of searchTerm) is "true"
 			end try
 			
-			if isGL or lowerTerm contains "guideline" or lowerTerm is "gl" or lowerTerm is "gls" or lowerTerm contains "gls" or lowerTerm contains "gl " or lowerTerm contains " gl" then
+			if isGL or lowerTerm contains "guideline" or lowerTerm contains "gl" or lowerTerm contains "📋" then
 				set preSelectedEngine to "Guidelines"
 			else if lowerTerm contains "marketingtools.apple.com" or lowerTerm contains "applemediaservices.com" or lowerTerm contains "marketing" then
 				set preSelectedEngine to "Apple Marketing"
