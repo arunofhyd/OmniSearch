@@ -36,6 +36,10 @@ on run {input, parameters}
 		set omniFolder to homeFolder & "OmniSearch/"
 		do shell script "mkdir -p " & quoted form of omniFolder
 		set prefsFile to omniFolder & "OmniSearch_Preferences.txt"
+		set guidelinesFile to omniFolder & "guidelines.json"
+		
+		-- Create default guidelines.json if it doesn't exist yet
+		do shell script "python3 -c \"import os, json; f='" & guidelinesFile & "'; os.path.exists(f) or open(f,'w').write(json.dumps({'Project Alpha Guidelines': 'https://confluence.company.com/alpha', 'Design System Specs': 'https://figma.com/@design', 'API Documentation': 'https://api.company.com/docs'}, indent=2))\""
 		
 		-- MAGIC KEYWORDS: Super easy user management
 		set isResetCommand to false
@@ -46,6 +50,16 @@ on run {input, parameters}
 				tell application uiApp
 					activate
 					display dialog "Preferences file not found. Try searching for 'omnireset' to generate it." buttons {"OK"} default button "OK"
+				end tell
+			end try
+			return (searchTerm as string)
+		else if searchTerm contains "omniguidelines" then
+			try
+				do shell script "open " & quoted form of guidelinesFile
+			on error
+				tell application uiApp
+					activate
+					display dialog "Guidelines file not found." buttons {"OK"} default button "OK"
 				end tell
 			end try
 			return (searchTerm as string)
@@ -448,18 +462,59 @@ on run {input, parameters}
 				end if
 			end repeat
 			
+			set end of uniqueEngines to "Guidelines 📋"
+			
 			set chosenEngine to ""
 			
 			if preSelectedEngine is not "" then
 				set chosenEngine to preSelectedEngine
-			else if (count of uniqueEngines) > 0 then
+			else if (count of uniqueEngines) > 1 then
+				tell application uiApp
+					activate
+					set engineChoice to choose from list uniqueEngines with prompt ("Select Search Engine or Destination:" & return) default items {item 1 of uniqueEngines} with title "OmniSearch"
+				end tell
+				if engineChoice is not false then
+					set chosenEngine to item 1 of engineChoice
+				else
+					return (searchTerm as string)
+				end if
+			else if (count of uniqueEngines) is 1 then
 				set chosenEngine to item 1 of uniqueEngines
 			else
 				set chosenEngine to "Apple Marketing"
 			end if
 			
-			set matchingTargets to {}
-			set availableRegions to {}
+			if chosenEngine contains "Guidelines" then
+				set getKeysCmd to "python3 -c \"import json; d=json.load(open('" & guidelinesFile & "')); print('\\n'.join(d.keys()))\""
+				set guidelineTitles to paragraphs of (do shell script getKeysCmd)
+				set end of guidelineTitles to "------------------"
+				set end of guidelineTitles to "✏️ Edit Guidelines List..."
+				
+				tell application uiApp
+					activate
+					set chosenGuideline to choose from list guidelineTitles with prompt ("Select Project Guidelines to open:" & return) default items {item 1 of guidelineTitles} with title "OmniSearch Guidelines"
+				end tell
+				
+				if chosenGuideline is not false then
+					set selectedTitle to item 1 of chosenGuideline
+					if selectedTitle is "✏️ Edit Guidelines List..." then
+						do shell script "open " & quoted form of guidelinesFile
+						return (searchTerm as string)
+					else if selectedTitle is "------------------" then
+						return (searchTerm as string)
+					else
+						set getUrlCmd to "python3 -c \"import json, sys; d=json.load(open('" & guidelinesFile & "')); print(d[sys.argv[1]])\" " & quoted form of selectedTitle
+						set targetURL to do shell script getUrlCmd
+						set isDirectURL to true
+					end if
+				else
+					return (searchTerm as string)
+				end if
+			end if
+			
+			if not isDirectURL then
+				set matchingTargets to {}
+				set availableRegions to {}
 			
 			repeat with tgt_idx from 1 to count of userSavedTargetsList
 				set tgt to item tgt_idx of userSavedTargetsList
@@ -561,6 +616,7 @@ on run {input, parameters}
 				set AppleScript's text item delimiters to oldDelims
 			end if
 		end if
+	end if
 		
 		-- ==========================================
 		-- 6. SAFARI EXECUTION
