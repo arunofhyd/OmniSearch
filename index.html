@@ -160,6 +160,66 @@
             animation: navIndicator 0.3s ease;
         }
 
+        .nav-fullscreen-btn {
+            position: absolute;
+            right: 1.5rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-fullscreen-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+            color: var(--accent-blue);
+        }
+
+        .presenter-name-br {
+            position: absolute;
+            bottom: 2.5rem;
+            right: 3.5rem;
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.03em;
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(10px);
+            padding: 0.6rem 1.4rem;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .presenter-name-br strong {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .locale-pill-group {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+
+        .locale-pill {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 12px;
+            background: rgba(41, 151, 255, 0.12);
+            color: var(--accent-blue);
+            border: 1px solid rgba(41, 151, 255, 0.25);
+            font-family: monospace;
+        }
+
         @keyframes navIndicator {
             from { opacity: 0; transform: scaleX(0); }
             to { opacity: 1; transform: scaleX(1); }
@@ -1217,6 +1277,7 @@
                 <a href="#sec-download"><i class="fa-solid fa-cloud-arrow-down"></i> <span class="nav-label-text">Download</span></a>
             </li>
         </ul>
+        <button class="nav-fullscreen-btn" id="fullscreen-btn" title="Presenter Mode (Fullscreen)"><i class="fa-solid fa-expand"></i> <span>Presenter</span></button>
     </nav>
 
     <!-- Ambient Background Glows -->
@@ -1226,12 +1287,12 @@
     <!-- ========================================================================
          SLIDE 1: TITLE
          ======================================================================== -->
-    <div id="sec-title" class="slide-container title-slide">
+    <div id="sec-title" class="slide-container title-slide" style="position: relative;">
         <div class="content-wrapper" style="padding: 0 5%;">
             <h1 class="fade-up text-gradient-silver">Omni Search</h1>
             <p class="fade-up delay-1 text-gradient-blue">Search at the speed of thought.</p>
-            <p class="fade-up delay-2 presenter-name">Arun Thomas</p>
         </div>
+        <div class="fade-up delay-2 presenter-name-br">Presented by <strong>Arun Thomas</strong></div>
     </div>
 
     <!-- ========================================================================
@@ -1315,28 +1376,28 @@
 
                 <h2 class="slide-title-hero">Omni Search.<br><span class="gradient-text">Absolute focus.</span></h2>
 
-                <p class="body-text-hero">An enterprise-grade routing engine built entirely in AppleScript. Omni seamlessly bypasses WAF restrictions, manages window IDs, and pulls your workflow to the front with unyielding precision.</p>
+                <p class="body-text-hero">A native macOS shortcut utility that routes queries directly to your favorite tools, cleans search URLs automatically, and reuses open browser windows without distracting tab clutter.</p>
 
                 <div class="feature-list-hero">
                     <div class="feature-item-hero">
                         <div class="feature-icon-hero"><i class="fa-solid fa-bolt"></i></div>
                         <div class="feature-text-hero">
                             <p class="feature-title-hero">Lightning Fast</p>
-                            <p class="feature-desc-hero">Reuses active windows instantly via precise ID targeting.</p>
+                            <p class="feature-desc-hero">Reuses active windows instantly via precise window targeting.</p>
                         </div>
                     </div>
                     <div class="feature-item-hero">
                         <div class="feature-icon-hero"><i class="fa-solid fa-shield-halved"></i></div>
                         <div class="feature-text-hero">
-                            <p class="feature-title-hero">WAF Compliant</p>
-                            <p class="feature-desc-hero">Sanitizes complex URLs to effortlessly bypass enterprise firewalls.</p>
+                            <p class="feature-title-hero">Smart Link Sanitizer</p>
+                            <p class="feature-desc-hero">Cleans and formats search URLs so they open smoothly in enterprise tools without security block errors.</p>
                         </div>
                     </div>
                     <div class="feature-item-hero">
                         <div class="feature-icon-hero"><i class="fa-solid fa-bullseye"></i></div>
                         <div class="feature-text-hero">
-                            <p class="feature-title-hero">Aggressive Focus</p>
-                            <p class="feature-desc-hero">Pulls Safari to the absolute front across all virtual desktops.</p>
+                            <p class="feature-title-hero">Instant Focus</p>
+                            <p class="feature-desc-hero">Pulls search results to the absolute front across all virtual desktops.</p>
                         </div>
                     </div>
                 </div>
@@ -1419,7 +1480,7 @@
     </div>
 
     <!-- ========================================================================
-         SLIDE 6: SOLUTION — PERSONALIZATION
+         SLIDE 6: SOLUTION — PERSONALIZATION & LOCALES
          ======================================================================== -->
     <div class="slide-container">
         <div class="content-wrapper two-col">
@@ -1429,38 +1490,45 @@
                         <i class="fa-solid fa-magnifying-glass"></i> <span style="font-weight: 600;">Omni Search</span>
                     </div>
                     <div class="mac-menu-body">
-                        <div class="mac-menu-item"><span>1. Apple Music</span></div>
+                        <div class="mac-menu-item"><span>1. Apple Music (IN / US / GB)</span></div>
                         <div class="mac-menu-item"><span>2. Marketing Media Tools</span></div>
-                        <div class="mac-menu-item"><span>3. Wikipedia</span></div>
-                        <div class="mac-menu-item"><span>4. WebMD</span></div>
-                        <div class="mac-menu-item active"><span>5. Gemini / Google</span></div>
-                        <div class="mac-menu-item"><span>6. PubMed Research</span></div>
-                        <div class="mac-menu-item"><span>7. DigitSpell</span></div>
+                        <div class="mac-menu-item"><span>3. Wikipedia Research</span></div>
+                        <div class="mac-menu-item"><span>4. Internal Knowledge Portal</span></div>
+                        <div class="mac-menu-item active"><span>5. Google Search (Global Locales)</span></div>
+                        <div class="mac-menu-item"><span>6. PubMed Medical Database</span></div>
+                        <div class="mac-menu-item"><span>7. Custom Enterprise Engine</span></div>
                     </div>
                 </div>
             </div>
             <div class="fade-up">
-                <h2 class="section-title text-gradient-silver" style="text-align: left; margin-bottom: 1.5rem;">Personalization</h2>
+                <h2 class="section-title text-gradient-silver" style="text-align: left; margin-bottom: 1.5rem;">Customization</h2>
                 <ul style="list-style: none;">
                     <li style="margin-bottom: 1.5rem; display: flex; align-items: flex-start; gap: 1rem;">
-                        <i class="fa-solid fa-plus text-gradient-blue" style="font-size: 1.5rem; margin-top: 5px;"></i>
+                        <i class="fa-solid fa-earth-americas text-gradient-blue" style="font-size: 1.5rem; margin-top: 5px;"></i>
                         <div>
-                            <h3 class="highlight-white" style="font-size: 1.8rem;">Infinitely Expandable.</h3>
-                            <p style="font-size: 1.1rem;">Not locked to defaults. Add any search database.</p>
+                            <h3 class="highlight-white" style="font-size: 1.6rem;">Locale & Region Friendly.</h3>
+                            <p style="font-size: 1.05rem;">Search engines and tools support any locale seamlessly:</p>
+                            <div class="locale-pill-group">
+                                <span class="locale-pill">en_IN</span>
+                                <span class="locale-pill">en_US</span>
+                                <span class="locale-pill">en_GB</span>
+                                <span class="locale-pill">en_SA</span>
+                                <span class="locale-pill">+ any region</span>
+                            </div>
                         </div>
                     </li>
                     <li style="margin-bottom: 1.5rem; display: flex; align-items: flex-start; gap: 1rem;">
                         <i class="fa-solid fa-sliders text-gradient-purple" style="font-size: 1.5rem; margin-top: 5px;"></i>
                         <div>
-                            <h3 class="highlight-white" style="font-size: 1.8rem;">Tailored Workflows.</h3>
-                            <p style="font-size: 1.1rem;">Build the menu that matches your role/needs.</p>
+                            <h3 class="highlight-white" style="font-size: 1.6rem;">Tailored Workflows.</h3>
+                            <p style="font-size: 1.05rem;">Customize menu options for Apple Music, Marketing Media Tools, Google, and internal databases.</p>
                         </div>
                     </li>
                     <li style="display: flex; align-items: flex-start; gap: 1rem;">
                         <i class="fa-solid fa-layer-group text-gradient-silver" style="font-size: 1.5rem; margin-top: 5px;"></i>
                         <div>
-                            <h3 class="highlight-white" style="font-size: 1.8rem;">Centralized Hub.</h3>
-                            <p style="font-size: 1.1rem;">Consolidate scattered bookmarks and tools into Omni Search.</p>
+                            <h3 class="highlight-white" style="font-size: 1.6rem;">Centralized Hub.</h3>
+                            <p style="font-size: 1.05rem;">Consolidate scattered bookmarks and enterprise tools into one quick menu.</p>
                         </div>
                     </li>
                 </ul>
@@ -1676,6 +1744,25 @@
             });
 
             sections.forEach(s => spyObserver.observe(s.el));
+
+            // --- PRESENTER FULLSCREEN MODE ---
+            const fsBtn = document.getElementById('fullscreen-btn');
+            if (fsBtn) {
+                fsBtn.addEventListener('click', () => {
+                    if (!document.fullscreenElement) {
+                        document.documentElement.requestFullscreen().catch(err => console.log("Fullscreen request failed:", err));
+                    } else {
+                        document.exitFullscreen().catch(err => console.log("Exit fullscreen failed:", err));
+                    }
+                });
+                document.addEventListener('fullscreenchange', () => {
+                    if (!document.fullscreenElement) {
+                        fsBtn.innerHTML = '<i class="fa-solid fa-expand"></i> <span>Presenter</span>';
+                    } else {
+                        fsBtn.innerHTML = '<i class="fa-solid fa-compress"></i> <span>Exit</span>';
+                    }
+                });
+            }
 
             // --- VERSION SYNC LOGIC ---
             const syncVersion = async () => {
