@@ -78,14 +78,15 @@ on run {input, parameters}
 		set oldDelims to AppleScript's text item delimiters
 		
 		if not isResetCommand then
+			set lowerTerm to do shell script "echo " & quoted form of searchTerm & " | tr '[:upper:]' '[:lower:]'"
 			set isGL to false
 			try
-				set isGL to (do shell script "python3 -c \"import sys, re; t=sys.argv[1].lower().strip(); print('true' if re.search(r'\\b(guidelines?|gls?)\\b', t) else 'false')\" " & quoted form of searchTerm) is "true"
+				set isGL to (do shell script "python3 -c \"import sys, re; t=sys.argv[1].lower().strip(); print('true' if re.search(r'\\b(guidelines?|gls?)\\b|📋', t) else 'false')\" " & quoted form of searchTerm) is "true"
 			end try
 			
-			if isGL then
+			if isGL or lowerTerm contains "guideline" then
 				set preSelectedEngine to "Guidelines"
-			else if searchTerm contains "marketingtools.apple.com" or searchTerm contains "applemediaservices.com" then
+			else if lowerTerm contains "marketingtools.apple.com" or lowerTerm contains "applemediaservices.com" or lowerTerm contains "marketing" then
 				set preSelectedEngine to "Apple Marketing"
 				if searchTerm contains "?q=" then
 					set AppleScript's text item delimiters to "?q="
@@ -95,7 +96,7 @@ on run {input, parameters}
 				try
 					set searchTerm to text item 2 of searchTerm
 				end try
-			else if searchTerm contains "music.apple.com" then
+			else if lowerTerm contains "music.apple.com" or lowerTerm contains "music" then
 				set preSelectedEngine to "Apple Music"
 				if searchTerm contains "?term=" then
 					set AppleScript's text item delimiters to "?term="
@@ -105,7 +106,7 @@ on run {input, parameters}
 				try
 					set searchTerm to text item 2 of searchTerm
 				end try
-			else if searchTerm contains "google.com/search" then
+			else if lowerTerm contains "google.com/search" or lowerTerm contains "google" then
 				set preSelectedEngine to "Google"
 				if searchTerm contains "?q=" then
 					set AppleScript's text item delimiters to "?q="
@@ -475,17 +476,7 @@ on run {input, parameters}
 			
 			if preSelectedEngine is not "" then
 				set chosenEngine to preSelectedEngine
-			else if (count of uniqueEngines) > 1 then
-				tell application uiApp
-					activate
-					set engineChoice to choose from list uniqueEngines with prompt ("Select Search Engine or Destination:" & return) default items {item 1 of uniqueEngines} with title "OmniSearch"
-				end tell
-				if engineChoice is not false then
-					set chosenEngine to item 1 of engineChoice
-				else
-					return (searchTerm as string)
-				end if
-			else if (count of uniqueEngines) is 1 then
+			else if (count of uniqueEngines) > 0 then
 				set chosenEngine to item 1 of uniqueEngines
 			else
 				set chosenEngine to "Apple Marketing"
