@@ -1272,9 +1272,9 @@
            15. ANIMATIONS
            ========================================================================== */
         .fade-up {
-            opacity: 0;
-            transform: translateY(40px);
-            transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .fade-up.visible {
@@ -1822,7 +1822,11 @@
                 }
             }
 
-            // Sync currentSlideIndex & animations on native scroll
+            // Make all slide text visible immediately on load
+            document.querySelectorAll('.fade-up').forEach(el => el.classList.add('visible'));
+
+            // Sync currentSlideIndex & animations on native scroll inside presentation-deck
+            const deckEl = document.getElementById('presentation-deck');
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
@@ -1836,7 +1840,7 @@
                         }
                     }
                 });
-            }, { threshold: 0.4 });
+            }, { root: deckEl, threshold: 0.3 });
 
             slides.forEach(slide => observer.observe(slide));
 
