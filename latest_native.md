@@ -78,44 +78,46 @@ on run {input, parameters}
 		set oldDelims to AppleScript's text item delimiters
 		
 		if not isResetCommand then
-			set lowerTerm to do shell script "echo " & quoted form of searchTerm & " | tr '[:upper:]' '[:lower:]'"
-			
-			if lowerTerm starts with "gl_" or lowerTerm contains "gl_" or lowerTerm is "gl" or lowerTerm is "gls" or lowerTerm contains "guidelines" then
-				set preSelectedEngine to "Guidelines"
-			else if lowerTerm contains "marketingtools.apple.com" or lowerTerm contains "applemediaservices.com" or lowerTerm contains "marketing" then
-				set preSelectedEngine to "Apple Marketing"
-				if searchTerm contains "?q=" then
-					set AppleScript's text item delimiters to "?q="
-				else if searchTerm contains "&q=" then
-					set AppleScript's text item delimiters to "&q="
-				end if
-				try
-					set searchTerm to text item 2 of searchTerm
-				end try
-			else if lowerTerm contains "music.apple.com" or lowerTerm contains "music" then
-				set preSelectedEngine to "Apple Music"
-				if searchTerm contains "?term=" then
-					set AppleScript's text item delimiters to "?term="
-				else if searchTerm contains "&term=" then
-					set AppleScript's text item delimiters to "&term="
-				end if
-				try
-					set searchTerm to text item 2 of searchTerm
-				end try
-			else if lowerTerm contains "google.com/search" or lowerTerm contains "google" then
-				set preSelectedEngine to "Google"
-				if searchTerm contains "?q=" then
-					set AppleScript's text item delimiters to "?q="
-				else if searchTerm contains "&q=" then
-					set AppleScript's text item delimiters to "&q="
-				end if
-				try
-					set tempTerm to text item 2 of searchTerm
-					set AppleScript's text item delimiters to "&"
-					set searchTerm to text item 1 of tempTerm
-				end try
-			else if searchTerm starts with "http" then
+			if searchTerm starts with "http" then
 				set isDirectURL to true
+			else
+				set lowerTerm to do shell script "echo " & quoted form of searchTerm & " | tr '[:upper:]' '[:lower:]'"
+				
+				if lowerTerm starts with "gl_" or lowerTerm is "gl_" or lowerTerm is "omniguidelines" then
+					set preSelectedEngine to "Guidelines"
+				else if lowerTerm contains "marketingtools.apple.com" or lowerTerm contains "applemediaservices.com" or lowerTerm contains "marketing" then
+					set preSelectedEngine to "Apple Marketing"
+					if searchTerm contains "?q=" then
+						set AppleScript's text item delimiters to "?q="
+					else if searchTerm contains "&q=" then
+						set AppleScript's text item delimiters to "&q="
+					end if
+					try
+						set searchTerm to text item 2 of searchTerm
+					end try
+				else if lowerTerm contains "music.apple.com" or lowerTerm contains "music" then
+					set preSelectedEngine to "Apple Music"
+					if searchTerm contains "?term=" then
+						set AppleScript's text item delimiters to "?term="
+					else if searchTerm contains "&term=" then
+						set AppleScript's text item delimiters to "&term="
+					end if
+					try
+						set searchTerm to text item 2 of searchTerm
+					end try
+				else if lowerTerm contains "google.com/search" or lowerTerm contains "google" then
+					set preSelectedEngine to "Google"
+					if searchTerm contains "?q=" then
+						set AppleScript's text item delimiters to "?q="
+					else if searchTerm contains "&q=" then
+						set AppleScript's text item delimiters to "&q="
+					end if
+					try
+						set tempTerm to text item 2 of searchTerm
+						set AppleScript's text item delimiters to "&"
+						set searchTerm to text item 1 of tempTerm
+					end try
+				end if
 			end if
 		end if
 		set AppleScript's text item delimiters to oldDelims
