@@ -484,23 +484,40 @@ on run {input, parameters}
 			
 			if chosenEngine contains "Guidelines" then
 				set getKeysCmd to "python3 -c \"import json; d=json.load(open('" & guidelinesFile & "')); print('\\n'.join(d.keys()))\""
-				set guidelineTitles to paragraphs of (do shell script getKeysCmd)
-				set end of guidelineTitles to "------------------"
-				set end of guidelineTitles to "✏️ Edit Guidelines List..."
+				set rawGuidelineTitles to paragraphs of (do shell script getKeysCmd)
+				
+				set numberedGuidelineTitles to {}
+				set gCounter to 1
+				set totalGuidelines to count of rawGuidelineTitles
+				
+				repeat with g_idx from 1 to totalGuidelines
+					set gTitle to item g_idx of rawGuidelineTitles
+					if gTitle is not "" then
+						set end of numberedGuidelineTitles to (gCounter as string) & ". " & gTitle
+						set gCounter to gCounter + 1
+					end if
+				end repeat
+				
+				set editOption to (gCounter as string) & ". ✏️ Edit Guidelines List..."
+				set end of numberedGuidelineTitles to editOption
 				
 				tell application uiApp
 					activate
-					set chosenGuideline to choose from list guidelineTitles with prompt ("Select Project Guidelines to open:" & return) default items {item 1 of guidelineTitles} with title "OmniSearch Guidelines"
+					set chosenGuideline to choose from list numberedGuidelineTitles with prompt ("Select Project Guidelines to open:" & return) default items {item 1 of numberedGuidelineTitles} with title "OmniSearch Guidelines"
 				end tell
 				
 				if chosenGuideline is not false then
-					set selectedTitle to item 1 of chosenGuideline
-					if selectedTitle is "✏️ Edit Guidelines List..." then
+					set selectedChoice to item 1 of chosenGuideline
+					if selectedChoice contains "Edit Guidelines List..." then
 						do shell script "open " & quoted form of guidelinesFile
 						return (searchTerm as string)
-					else if selectedTitle is "------------------" then
-						return (searchTerm as string)
 					else
+						set oldDelims to AppleScript's text item delimiters
+						set AppleScript's text item delimiters to ". "
+						set titlePieces to text items of selectedChoice
+						set selectedTitle to items 2 thru -1 of titlePieces as string
+						set AppleScript's text item delimiters to oldDelims
+						
 						set getUrlCmd to "python3 -c \"import json, sys; d=json.load(open('" & guidelinesFile & "')); print(d[sys.argv[1]])\" " & quoted form of selectedTitle
 						set targetURL to do shell script getUrlCmd
 						set isDirectURL to true
