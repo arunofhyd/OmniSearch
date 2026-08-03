@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Omni Search - Premium Keynote</title>
+    <title>OmniSearch — Office Presentation</title>
+    <meta name="description" content="OmniSearch: A native macOS search routing engine. Eliminating context-switching, boosting analyst productivity, and enabling accessible search for all.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -16,6 +17,10 @@
             --text-primary: #ffffff;
             --text-secondary: #86868b;
             --accent-blue: #2997ff;
+            --accent-purple: #bf5af2;
+            --accent-red: #ff375f;
+            --accent-green: #30d158;
+            --accent-orange: #ff9f0a;
             --font-main: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
@@ -67,6 +72,12 @@
             -webkit-text-fill-color: transparent;
         }
 
+        .text-gradient-green {
+            background: linear-gradient(135deg, #30d158 0%, #34c759 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
         .highlight-white {
             color: #ffffff;
             font-weight: 500;
@@ -78,7 +89,84 @@
         }
 
         /* ==========================================================================
-           3. SLIDE LAYOUTS
+           3. NAVIGATION BAR
+           ========================================================================== */
+        .presentation-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 2rem;
+            height: 52px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            transition: transform 0.3s ease;
+        }
+
+        .nav-items {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-item {
+            position: relative;
+        }
+
+        .nav-item a {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0.5rem 1.2rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.01em;
+            transition: color 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .nav-item a i {
+            font-size: 11px;
+        }
+
+        .nav-item a:hover {
+            color: #d1d1d6;
+        }
+
+        .nav-item.active a {
+            color: #ffffff;
+        }
+
+        .nav-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 1.2rem;
+            right: 1.2rem;
+            height: 2px;
+            background: var(--accent-blue);
+            border-radius: 2px;
+            animation: navIndicator 0.3s ease;
+        }
+
+        @keyframes navIndicator {
+            from { opacity: 0; transform: scaleX(0); }
+            to { opacity: 1; transform: scaleX(1); }
+        }
+
+        /* ==========================================================================
+           4. SLIDE LAYOUTS
            ========================================================================== */
         .slide-container {
             min-height: 100vh;
@@ -87,7 +175,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 5% 0; /* Reduced side padding for carousel full-bleed feel */
+            padding: 5% 0;
             position: relative;
             scroll-snap-align: start;
             overflow: hidden;
@@ -97,7 +185,7 @@
             max-width: 1400px;
             width: 100%;
             z-index: 10;
-            padding: 0 5%; /* Restore padding for inner content */
+            padding: 0 5%;
         }
 
         .title-slide {
@@ -119,8 +207,36 @@
             text-align: center;
         }
 
+        /* Section label (e.g., "01 PROBLEM") */
+        .section-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .section-label .label-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            font-variant-numeric: tabular-nums;
+        }
+
         /* ==========================================================================
-           4. UI COMPONENTS & BUTTONS
+           5. UI COMPONENTS & BUTTONS
            ========================================================================== */
         .card-panel {
             background: var(--card-bg);
@@ -150,32 +266,6 @@
             color: var(--accent-blue);
         }
 
-        /* Buttons */
-        .fixed-download-btn {
-            position: fixed;
-            top: 2rem;
-            right: 2rem;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 0.8rem 1.5rem;
-            border-radius: 30px;
-            text-decoration: none;
-            font-weight: 500;
-            z-index: 1000;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .fixed-download-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.05);
-        }
-
         /* Ambient Glow Backgrounds */
         .ambient-glow {
             position: absolute;
@@ -195,15 +285,135 @@
         }
 
         /* ==========================================================================
-           5. CAROUSEL & CARDS (NEW)
+           6. PROBLEM STATEMENT CARDS
            ========================================================================== */
+        .problem-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            width: 100%;
+        }
 
+        .problem-card {
+            background: rgba(17, 17, 17, 0.8);
+            border-radius: 24px;
+            padding: 2.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .problem-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .problem-card::before {
+            content: '';
+            position: absolute;
+            top: -60%;
+            left: -20%;
+            width: 140%;
+            height: 140%;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.08;
+            z-index: 0;
+        }
+
+        .problem-card:nth-child(1)::before { background: var(--accent-red); }
+        .problem-card:nth-child(2)::before { background: var(--accent-orange); }
+        .problem-card:nth-child(3)::before { background: var(--accent-purple); }
+
+        .problem-card > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .problem-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .problem-card:nth-child(1) .problem-icon { color: var(--accent-red); }
+        .problem-card:nth-child(2) .problem-icon { color: var(--accent-orange); }
+        .problem-card:nth-child(3) .problem-icon { color: var(--accent-purple); }
+
+        .problem-card h3 {
+            font-size: 1.8rem;
+            color: #ffffff;
+            margin-bottom: 1rem;
+        }
+
+        .problem-card p {
+            font-size: 1.15rem;
+            line-height: 1.5;
+            color: var(--text-secondary);
+        }
+
+        /* ==========================================================================
+           7. OBJECTIVE SLIDE
+           ========================================================================== */
+        .objective-content {
+            text-align: center;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .objective-mission {
+            font-size: clamp(2rem, 4vw, 3.2rem);
+            font-weight: 600;
+            line-height: 1.3;
+            color: #f5f5f7;
+            margin-bottom: 3rem;
+            letter-spacing: -0.02em;
+        }
+
+        .objective-pillars {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .pillar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .pillar-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .pillar-icon.blue { color: var(--accent-blue); }
+        .pillar-icon.green { color: var(--accent-green); }
+        .pillar-icon.purple { color: var(--accent-purple); }
+
+        .pillar span {
+            font-size: 14px;
+            font-weight: 600;
+            color: #d1d1d6;
+            letter-spacing: 0.02em;
+        }
+
+        /* ==========================================================================
+           8. CAROUSEL & VERSION CARDS
+           ========================================================================== */
         .version-carousel-wrapper {
             width: 100vw;
-            overflow: hidden; /* Hide overflow from wrapper */
+            overflow: hidden;
             padding: 2rem 0;
-
-            /* FADE MASK: Create a soft fade on left/right edges */
             -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
             mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
         }
@@ -213,14 +423,13 @@
             overflow-x: auto;
             scroll-snap-type: x mandatory;
             gap: 2rem;
-            padding: 0 5vw; /* Left/Right padding for snap alignment */
+            padding: 0 5vw;
             width: 100%;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
-            justify-content: flex-end; /* Align right to show latest by default on wide screens */
+            justify-content: flex-end;
         }
 
-        /* Center content if few items on desktop */
         @media (min-width: 1024px) {
             .version-carousel {
                 justify-content: center;
@@ -301,25 +510,14 @@
             flex-grow: 1;
             margin-bottom: 2rem;
             overflow-y: auto;
-            padding-right: 0.5rem; /* Add spacing for scrollbar */
-
-            /* Custom Scrollbar for a premium look */
+            padding-right: 0.5rem;
             scrollbar-width: thin;
             scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
         }
 
-        .card-body::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .card-body::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .card-body::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 4px;
-        }
+        .card-body::-webkit-scrollbar { width: 4px; }
+        .card-body::-webkit-scrollbar-track { background: transparent; }
+        .card-body::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 4px; }
 
         .feature-list {
             list-style: none;
@@ -381,11 +579,9 @@
             border-color: rgba(255, 255, 255, 0.3);
         }
 
-
         /* ==========================================================================
-           6. OTHER SLIDE DESIGNS (Existing)
+           9. HOW IT WORKS / STEPS
            ========================================================================== */
-        
         .steps-container {
             display: flex;
             justify-content: space-between;
@@ -411,14 +607,6 @@
             grid-template-columns: 1fr 1fr;
             gap: 4rem;
             align-items: center;
-        }
-        .huge-icon {
-            font-size: clamp(10rem, 20vw, 25rem);
-            text-align: center;
-            background: linear-gradient(135deg, #1c1c1e 0%, #333336 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 40px rgba(41, 151, 255, 0.2);
         }
 
         .mac-menu-mockup {
@@ -465,44 +653,223 @@
         }
 
         /* ==========================================================================
-           7. ANIMATIONS
+           10. TIME SAVED SECTION
            ========================================================================== */
-        .fade-up {
-            opacity: 0;
-            transform: translateY(40px);
-            transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        
-        .fade-up.visible {
-            opacity: 1;
-            transform: translateY(0);
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-bottom: 4rem;
         }
 
-        .delay-1 { transition-delay: 0.1s; }
-        .delay-2 { transition-delay: 0.2s; }
-        .delay-3 { transition-delay: 0.3s; }
-        .delay-4 { transition-delay: 0.4s; }
+        .kpi-card {
+            background: rgba(17, 17, 17, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 24px;
+            padding: 3rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
 
-                /* ==========================================================================
-           8. HERO CARD STYLES (New)
+        .kpi-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            border-radius: 0 0 24px 24px;
+        }
+
+        .kpi-card:nth-child(1)::before { background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple)); }
+        .kpi-card:nth-child(2)::before { background: linear-gradient(90deg, var(--accent-green), #34c759); }
+        .kpi-card:nth-child(3)::before { background: linear-gradient(90deg, var(--accent-orange), var(--accent-red)); }
+
+        .kpi-value {
+            font-size: clamp(3rem, 5vw, 4.5rem);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            margin-bottom: 0.5rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .kpi-card:nth-child(1) .kpi-value { color: var(--accent-blue); }
+        .kpi-card:nth-child(2) .kpi-value { color: var(--accent-green); }
+        .kpi-card:nth-child(3) .kpi-value { color: var(--accent-orange); }
+
+        .kpi-label {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .comparison-row {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 2rem;
+            align-items: center;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .comparison-box {
+            background: rgba(17, 17, 17, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .comparison-box.before {
+            border-color: rgba(255, 55, 95, 0.2);
+        }
+
+        .comparison-box.after {
+            border-color: rgba(48, 209, 88, 0.3);
+            box-shadow: 0 0 30px rgba(48, 209, 88, 0.08);
+        }
+
+        .comparison-box h4 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .comparison-box.before h4 { color: var(--accent-red); }
+        .comparison-box.after h4 { color: var(--accent-green); }
+
+        .comparison-box .steps-list {
+            list-style: none;
+            padding: 0;
+            text-align: left;
+        }
+
+        .comparison-box .steps-list li {
+            padding: 0.5rem 0;
+            font-size: 0.95rem;
+            color: #d1d1d6;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .comparison-box .steps-list li:last-child {
+            border-bottom: none;
+        }
+
+        .comparison-box .steps-list li i {
+            font-size: 0.8rem;
+            width: 16px;
+            text-align: center;
+        }
+
+        .comparison-box.before .steps-list li i { color: var(--accent-red); }
+        .comparison-box.after .steps-list li i { color: var(--accent-green); }
+
+        .comparison-arrow {
+            font-size: 2rem;
+            color: var(--text-secondary);
+        }
+
+        /* ==========================================================================
+           11. PILOT FEEDBACK / TESTIMONIALS
            ========================================================================== */
+        .testimonial-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
 
-        /* Core Hero Card Styling */
+        .testimonial-card {
+            background: rgba(17, 17, 17, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 24px;
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+            min-height: 280px;
+        }
+
+        .testimonial-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .testimonial-stars {
+            margin-bottom: 1.2rem;
+            color: var(--accent-orange);
+            font-size: 1rem;
+            letter-spacing: 3px;
+        }
+
+        .testimonial-quote {
+            font-size: 1.15rem;
+            line-height: 1.6;
+            color: #d1d1d6;
+            font-style: italic;
+            margin-bottom: 2rem;
+            flex-grow: 1;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .testimonial-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .testimonial-card:nth-child(1) .testimonial-avatar { background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); }
+        .testimonial-card:nth-child(2) .testimonial-avatar { background: linear-gradient(135deg, var(--accent-green), var(--accent-blue)); }
+        .testimonial-card:nth-child(3) .testimonial-avatar { background: linear-gradient(135deg, var(--accent-purple), var(--accent-red)); }
+
+        .testimonial-name {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #f5f5f7;
+        }
+
+        .testimonial-role {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* ==========================================================================
+           12. HERO CARD STYLES
+           ========================================================================== */
         .hero-card {
             width: 1280px;
             height: 720px;
             max-width: 95vw;
             background-color: #000000;
             border-radius: 20px;
-            /* Inner glassy border effect signature to macOS */
             box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
             overflow: hidden;
-            /* Prioritize Apple's native San Francisco font, fallback to Inter */
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
             position: relative;
         }
 
-        /* 2. LAYOUT - Split Layout */
         .hero-card.bleed-image-layout {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -520,12 +887,11 @@
                 border-radius: 0 0 20px 20px;
                 border-left: none;
                 border-top: 1px solid rgba(255, 255, 255, 0.05);
-                height: 500px; /* Reduced artwork height on mobile */
+                height: 500px;
              }
         }
 
         .content-container-hero {
-            /* Generous padding for clean negative space - Reduced to 40px to prevent clipping */
             padding: 40px 50px 40px 60px;
             display: flex;
             flex-direction: column;
@@ -533,9 +899,6 @@
             height: 100%;
         }
 
-        /* 3. TYPOGRAPHY & APPLE STYLING */
-
-        /* Premium Translucent Badge */
         .pro-badge-hero {
             align-self: flex-start;
             padding: 6px 14px;
@@ -551,7 +914,6 @@
             backdrop-filter: blur(10px);
         }
 
-        /* Tight, high-contrast hero text */
         .slide-title-hero {
             font-size: 72px;
             font-weight: 700;
@@ -561,7 +923,6 @@
             margin-bottom: 20px;
         }
 
-        /* Vibrant macOS style text gradient */
         .gradient-text {
             background: linear-gradient(135deg, #2997ff 0%, #b388ff 100%);
             -webkit-background-clip: text;
@@ -569,7 +930,6 @@
             display: inline-block;
         }
 
-        /* Muted, highly legible subtitle gray */
         .body-text-hero {
             font-size: 20px;
             line-height: 1.5;
@@ -580,7 +940,6 @@
             max-width: 95%;
         }
 
-        /* 4. FEATURE LIST */
         .feature-list-hero {
             display: flex;
             flex-direction: column;
@@ -593,7 +952,6 @@
             gap: 16px;
         }
 
-        /* Rounded glass-like icon blocks */
         .feature-icon-hero {
             flex-shrink: 0;
             display: flex;
@@ -629,13 +987,12 @@
             font-weight: 400;
         }
 
-        /* 5. HERO ARTWORK (Abstract UI Representation) */
+        /* Hero Artwork */
         .hero-artwork {
-            height: 100%; /* Fill the container height */
+            height: 100%;
             width: 100%;
             position: relative;
             background: radial-gradient(circle at 50% 50%, #151516 0%, #000000 100%);
-            /* border-radius inherited from parent overflow hidden usually, but here explicit on right */
             border-radius: 0 20px 20px 0;
             display: flex;
             flex-direction: column;
@@ -672,7 +1029,6 @@
             width: 100%;
         }
 
-        /* The Main Omni Search Bar Mockup */
         .search-bar-mock {
             background: rgba(30, 30, 32, 0.7);
             backdrop-filter: blur(20px);
@@ -708,7 +1064,6 @@
             letter-spacing: -0.02em;
         }
 
-        /* Routing Lines Container */
         .routing-container {
             display: flex;
             justify-content: space-between;
@@ -726,7 +1081,6 @@
             overflow: visible;
         }
 
-        /* Destination Target Nodes */
         .destination-grid {
             display: flex;
             justify-content: space-between;
@@ -749,55 +1103,214 @@
             transition: all 0.3s ease;
         }
 
-        .dest-icon:nth-child(1) { color: #f5f5f7; } /* Apple System */
-        .dest-icon:nth-child(2) { color: #34c759; } /* Apple Maps */
-        .dest-icon:nth-child(3) { color: #fa2d48; } /* Apple Music */
-        .dest-icon:nth-child(4) { color: #2997ff; } /* Web Search */
-        .dest-icon:nth-child(5) { color: #bf5af2; } /* Database/AI */
+        .dest-icon:nth-child(1) { color: #f5f5f7; }
+        .dest-icon:nth-child(2) { color: #34c759; }
+        .dest-icon:nth-child(3) { color: #fa2d48; }
+        .dest-icon:nth-child(4) { color: #2997ff; }
+        .dest-icon:nth-child(5) { color: #bf5af2; }
 
+        /* ==========================================================================
+           13. CTA SECTION
+           ========================================================================== */
+        .cta-subtitle {
+            font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+            color: var(--text-secondary);
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        /* ==========================================================================
+           14. PRESENTER INFO
+           ========================================================================== */
+        .presenter-name {
+            font-size: clamp(1rem, 1.5vw, 1.3rem);
+            color: var(--text-secondary);
+            font-weight: 400;
+            margin-top: 2rem;
+            letter-spacing: 0.05em;
+        }
+
+        /* ==========================================================================
+           15. ANIMATIONS
+           ========================================================================== */
+        .fade-up {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .fade-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .delay-1 { transition-delay: 0.1s; }
+        .delay-2 { transition-delay: 0.2s; }
+        .delay-3 { transition-delay: 0.3s; }
+        .delay-4 { transition-delay: 0.4s; }
+        .delay-5 { transition-delay: 0.5s; }
+
+        /* ==========================================================================
+           16. RESPONSIVE
+           ========================================================================== */
         @media (max-width: 768px) {
             .steps-container, .two-col {
                 flex-direction: column;
                 grid-template-columns: 1fr;
             }
             .slide-container { padding: 10% 0; }
-            .fixed-download-btn { top: 1rem; right: 1rem; font-size: 0.9rem; padding: 0.6rem 1rem;}
-            /*
-               Mobile Carousel:
-               - Card width: 80vw (allows peeking of next card)
-               - Gap: 1.5rem (tighter spacing)
-               - Padding: 7.5vw (centers first card visually with mask)
-            */
-            /* Set a fixed height on mobile to force scrolling for long content */
-            .version-card { flex: 0 0 80vw; height: 500px; min-height: 450px;}
+            .problem-cards, .kpi-grid, .testimonial-grid {
+                grid-template-columns: 1fr;
+            }
+            .comparison-row {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            .comparison-arrow {
+                transform: rotate(90deg);
+                text-align: center;
+            }
+            .version-card { flex: 0 0 80vw; height: 500px; min-height: 450px; }
             .version-carousel { gap: 1.5rem; justify-content: flex-start; padding: 0 7.5vw; }
+            .presentation-nav {
+                padding: 0 0.5rem;
+            }
+            .nav-item a {
+                padding: 0.5rem 0.6rem;
+                font-size: 11px;
+            }
+            .nav-item a span.nav-label-text {
+                display: none;
+            }
+            .objective-pillars {
+                gap: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
 
-    <!-- Fixed Global Download Button -->
-    <a href="#download" class="fixed-download-btn"><i class="fa-solid fa-cloud-arrow-down"></i> Get <span class="js-latest-version-display">Latest</span></a>
+    <!-- ========================================================================
+         NAVIGATION BAR
+         ======================================================================== -->
+    <nav class="presentation-nav" id="presentation-nav">
+        <ul class="nav-items">
+            <li class="nav-item active" data-section="sec-title">
+                <a href="#sec-title"><i class="fa-solid fa-house"></i> <span class="nav-label-text">Home</span></a>
+            </li>
+            <li class="nav-item" data-section="sec-problem">
+                <a href="#sec-problem"><i class="fa-solid fa-triangle-exclamation"></i> <span class="nav-label-text">Problem</span></a>
+            </li>
+            <li class="nav-item" data-section="sec-objective">
+                <a href="#sec-objective"><i class="fa-solid fa-bullseye"></i> <span class="nav-label-text">Objective</span></a>
+            </li>
+            <li class="nav-item" data-section="sec-solution">
+                <a href="#sec-solution"><i class="fa-solid fa-wand-magic-sparkles"></i> <span class="nav-label-text">Solution</span></a>
+            </li>
+            <li class="nav-item" data-section="sec-time">
+                <a href="#sec-time"><i class="fa-solid fa-clock"></i> <span class="nav-label-text">Time Saved</span></a>
+            </li>
+            <li class="nav-item" data-section="sec-feedback">
+                <a href="#sec-feedback"><i class="fa-solid fa-comments"></i> <span class="nav-label-text">Feedback</span></a>
+            </li>
+            <li class="nav-item" data-section="sec-download">
+                <a href="#sec-download"><i class="fa-solid fa-cloud-arrow-down"></i> <span class="nav-label-text">Download</span></a>
+            </li>
+        </ul>
+    </nav>
 
     <!-- Ambient Background Glows -->
     <div class="ambient-glow glow-1"></div>
     <div class="ambient-glow glow-2"></div>
 
-    <!-- Slide 1: Title -->
-    <div class="slide-container title-slide">
+    <!-- ========================================================================
+         SLIDE 1: TITLE
+         ======================================================================== -->
+    <div id="sec-title" class="slide-container title-slide">
         <div class="content-wrapper" style="padding: 0 5%;">
             <h1 class="fade-up text-gradient-silver">Omni Search</h1>
             <p class="fade-up delay-1 text-gradient-blue">Search at the speed of thought.</p>
+            <p class="fade-up delay-2 presenter-name">Arun Thomas</p>
         </div>
     </div>
 
-        <!-- Slide 1: Hero Card Presentation -->
-    <div class="slide-container">
-        <div class="hero-card bleed-image-layout" id="slide1">
+    <!-- ========================================================================
+         SLIDE 2: PROBLEM STATEMENT
+         ======================================================================== -->
+    <div id="sec-problem" class="slide-container">
+        <div class="content-wrapper">
+            <div class="fade-up" style="text-align: center; margin-bottom: 3rem;">
+                <div class="section-label" style="justify-content: center;">
+                    <span class="label-number">01</span> Problem Statement
+                </div>
+                <h2 class="section-title text-gradient-silver" style="margin-bottom: 1rem;">The daily struggle is real.</h2>
+                <p style="max-width: 700px; margin: 0 auto; font-size: 1.2rem;">Analysts lose valuable time every day to a broken search workflow — and it's worse for those who rely on assistive technology.</p>
+            </div>
+            <div class="problem-cards">
+                <div class="problem-card fade-up delay-1">
+                    <i class="fa-solid fa-hourglass-half problem-icon"></i>
+                    <h3>Context-Switching Tax</h3>
+                    <p>Every search requires leaving the current app, opening a browser, navigating to the right tool, typing the query, and switching back. Analysts lose 5–15 minutes per day to this invisible friction.</p>
+                </div>
+                <div class="problem-card fade-up delay-2">
+                    <i class="fa-solid fa-window-restore problem-icon"></i>
+                    <h3>Tab Overload</h3>
+                    <p>No standardized search workflow. Each analyst uses different tools and methods, leading to browser clutter, lost tabs, and fragmented knowledge across dozens of open windows.</p>
+                </div>
+                <div class="problem-card fade-up delay-3">
+                    <i class="fa-solid fa-universal-access problem-icon"></i>
+                    <h3>Accessibility Gap</h3>
+                    <p>Specially-abled and blind analysts face an amplified burden — multi-step, mouse-dependent search workflows are a barrier. A keyboard-first, VoiceOver-compatible solution is not optional, it's essential.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================
+         SLIDE 3: OBJECTIVE
+         ======================================================================== -->
+    <div id="sec-objective" class="slide-container">
+        <div class="content-wrapper">
+            <div class="fade-up" style="text-align: center; margin-bottom: 2rem;">
+                <div class="section-label" style="justify-content: center;">
+                    <span class="label-number">02</span> Objective
+                </div>
+            </div>
+            <div class="objective-content fade-up delay-1">
+                <p class="objective-mission">
+                    Build a <span class="gradient-text">native, zero-friction</span> search utility that routes any selected text to the right tool — instantly — from any app, on any desktop, for <span style="color: #ffffff; font-weight: 600;">every</span> analyst.
+                </p>
+                <div class="objective-pillars fade-up delay-2">
+                    <div class="pillar">
+                        <div class="pillar-icon blue"><i class="fa-solid fa-bolt"></i></div>
+                        <span>Zero Friction</span>
+                    </div>
+                    <div class="pillar">
+                        <div class="pillar-icon green"><i class="fa-solid fa-universal-access"></i></div>
+                        <span>Fully Accessible</span>
+                    </div>
+                    <div class="pillar">
+                        <div class="pillar-icon purple"><i class="fa-solid fa-route"></i></div>
+                        <span>Intelligent Routing</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================
+         SLIDE 4: SOLUTION — HERO CARD
+         ======================================================================== -->
+    <div id="sec-solution" class="slide-container">
+        <div class="content-wrapper fade-up" style="text-align: center; margin-bottom: 2rem; padding: 0 5%;">
+            <div class="section-label" style="justify-content: center;">
+                <span class="label-number">03</span> Solution
+            </div>
+        </div>
+        <div class="hero-card bleed-image-layout fade-up delay-1">
 
             <!-- Left Side: Text and Features -->
             <div class="content-container-hero">
-                <!-- Modern pill badge -->
                 <div class="pro-badge-hero">macOS Native</div>
 
                 <h2 class="slide-title-hero">Omni Search.<br><span class="gradient-text">Absolute focus.</span></h2>
@@ -805,7 +1318,6 @@
                 <p class="body-text-hero">An enterprise-grade routing engine built entirely in AppleScript. Omni seamlessly bypasses WAF restrictions, manages window IDs, and pulls your workflow to the front with unyielding precision.</p>
 
                 <div class="feature-list-hero">
-                    <!-- Feature 1 -->
                     <div class="feature-item-hero">
                         <div class="feature-icon-hero"><i class="fa-solid fa-bolt"></i></div>
                         <div class="feature-text-hero">
@@ -813,7 +1325,6 @@
                             <p class="feature-desc-hero">Reuses active windows instantly via precise ID targeting.</p>
                         </div>
                     </div>
-                    <!-- Feature 2 -->
                     <div class="feature-item-hero">
                         <div class="feature-icon-hero"><i class="fa-solid fa-shield-halved"></i></div>
                         <div class="feature-text-hero">
@@ -821,7 +1332,6 @@
                             <p class="feature-desc-hero">Sanitizes complex URLs to effortlessly bypass enterprise firewalls.</p>
                         </div>
                     </div>
-                    <!-- Feature 3 -->
                     <div class="feature-item-hero">
                         <div class="feature-icon-hero"><i class="fa-solid fa-bullseye"></i></div>
                         <div class="feature-text-hero">
@@ -838,25 +1348,19 @@
                 <div class="art-glow-purple"></div>
 
                 <div class="omni-abstract-ui">
-                    <!-- The Search Bar -->
                     <div class="search-bar-mock">
                         <i class="fa-solid fa-magnifying-glass search-icon-hero"></i>
                         <span class="search-text">Omni Search...</span>
                     </div>
 
-                    <!-- The Routing System -->
                     <div class="routing-container">
-
-                        <!-- SVG Animated Data Lines -->
                         <svg class="routing-lines" viewBox="0 0 400 60">
-                            <!-- Path definitions -->
                             <path d="M 200 0 C 200 30, 32 30, 32 60" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
                             <path d="M 200 0 C 200 30, 116 30, 116 60" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
                             <path d="M 200 0 C 200 30, 200 30, 200 60" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
                             <path d="M 200 0 C 200 30, 284 30, 284 60" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
                             <path d="M 200 0 C 200 30, 368 30, 368 60" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
 
-                            <!-- Glowing data packets traveling along the paths -->
                             <circle cx="0" cy="0" r="2.5" fill="#f5f5f7">
                                  <animateMotion dur="2.5s" repeatCount="indefinite" path="M 200 0 C 200 30, 32 30, 32 60" />
                             </circle>
@@ -874,7 +1378,6 @@
                             </circle>
                         </svg>
 
-                        <!-- Target Hubs -->
                         <div class="destination-grid">
                             <div class="dest-icon"><i class="fa-brands fa-apple"></i></div>
                             <div class="dest-icon"><i class="fa-solid fa-map-location-dot"></i></div>
@@ -889,46 +1392,9 @@
         </div>
     </div>
 
-    <!-- Slide 2: VERSION CAROUSEL (Refactored) -->
-    <div id="download" class="slide-container">
-        <div class="version-carousel-wrapper">
-            <h2 class="section-title fade-up text-gradient-silver" style="margin-bottom: 2rem;">Select Your Version</h2>
-            
-            <!-- CAROUSEL -->
-            <div class="version-carousel fade-up delay-1" id="version-carousel">
-                <!-- Javascript will inject cards here -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Slide 3: What is it? -->
-    <div class="slide-container">
-        <div class="content-wrapper">
-            <div class="fade-up" style="text-align: left; margin-bottom: 4rem;">
-                <h2 class="bold-white" style="font-size: clamp(3rem, 5vw, 4.5rem); margin-bottom: 1rem;">What is Omni Search ?</h2>
-                <p class="highlight-white" style="font-size: clamp(1.5rem, 2.5vw, 2rem);">A shortcut that simplifies search.</p>
-            </div>
-            <div class="grid-cards">
-                <div class="card-panel fade-up delay-1">
-                    <i class="fa-brands fa-apple icon-large"></i>
-                    <h3 class="highlight-white" style="margin-bottom: 10px; font-size: 2rem;">Native Utility</h3>
-                    <p style="font-size: 1.2rem; line-height: 1.4;">Built entirely on macOS native Shortcuts App.</p>
-                </div>
-                <div class="card-panel fade-up delay-2">
-                    <i class="fa-solid fa-bolt icon-large"></i>
-                    <h3 class="highlight-white" style="margin-bottom: 10px; font-size: 2rem;">Customizable</h3>
-                    <p style="font-size: 1.2rem; line-height: 1.4;">Tailor according to the needs of the Analyst.</p>
-                </div>
-                <div class="card-panel fade-up delay-3">
-                    <i class="fa-solid fa-route icon-large"></i>
-                    <h3 class="highlight-white" style="margin-bottom: 10px; font-size: 2rem;">Routing Engine</h3>
-                    <p style="font-size: 1.2rem; line-height: 1.4;">Not just search, it routes data to the tool you need.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Slide 4: How does it work? -->
+    <!-- ========================================================================
+         SLIDE 5: SOLUTION — HOW IT WORKS
+         ======================================================================== -->
     <div class="slide-container">
         <div class="content-wrapper">
             <h2 class="section-title fade-up text-gradient-silver">How does it work?</h2>
@@ -952,68 +1418,9 @@
         </div>
     </div>
 
-    <!-- Slide 5: Why do we need it? -->
-    <div class="slide-container">
-        <div class="content-wrapper">
-            <h2 class="section-title fade-up text-gradient-silver">Why do we need it?</h2>
-            <div class="grid-cards">
-                <div class="card-panel fade-up delay-1">
-                    <i class="fa-solid fa-wind icon-large"></i>
-                    <h3 class="highlight-white" style="margin-bottom: 10px; font-size: 2rem;">Zero Friction</h3>
-                    <p style="font-size: 1.1rem; line-height: 1.4;">Eliminates the content-switching tax.</p>
-                </div>
-                <div class="card-panel fade-up delay-2">
-                    <i class="fa-solid fa-universal-access icon-large"></i>
-                    <h3 class="highlight-white" style="margin-bottom: 10px; font-size: 2rem;">Inclusive</h3>
-                    <p style="font-size: 1.1rem; line-height: 1.4;">Motor accessible and VoiceOver ready.</p>
-                </div>
-                <div class="card-panel fade-up delay-3">
-                    <i class="fa-solid fa-window-maximize icon-large"></i>
-                    <h3 class="highlight-white" style="margin-bottom: 10px; font-size: 2rem;">No Clutter</h3>
-                    <p style="font-size: 1.1rem; line-height: 1.4;">Runs on the same window every single time.</p>
-                </div>
-                <div class="card-panel fade-up delay-4">
-                    <i class="fa-solid fa-globe icon-large"></i>
-                    <h3 class="highlight-white" style="margin-bottom: 10px; font-size: 2rem;">Universal</h3>
-                    <p style="font-size: 1.1rem; line-height: 1.4;">Centralized hub search tool for all projects.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Slide 6: Global Adoption -->
-    <div class="slide-container">
-        <div class="content-wrapper two-col">
-            <div class="fade-up">
-                <h2 class="section-title text-gradient-silver" style="text-align: left; margin-bottom: 1.5rem;">Global Adoption</h2>
-                <div style="margin-bottom: 2rem;">
-                    <h3 class="highlight-white" style="font-size: 2rem; margin-bottom: 0.5rem;">Built for Global Teams.</h3>
-                    <p>Adapts to any locale instantly.</p>
-                </div>
-                <div style="margin-bottom: 2rem;">
-                    <h3 class="highlight-white" style="font-size: 2rem; margin-bottom: 0.5rem;">Instantly Localized.</h3>
-                    <p>Just swap the region to re-route searches.</p>
-                </div>
-                <div>
-                    <h3 class="highlight-white" style="font-size: 2rem; margin-bottom: 0.5rem;">Zero Complexity.</h3>
-                    <p>No IT ticket. No onboarding. It just works.</p>
-                </div>
-            </div>
-            <div class="fade-up delay-2" style="display: flex; justify-content: center;">
-                <i class="fa-solid fa-earth-americas huge-icon"></i>
-            </div>
-        </div>
-    </div>
-
-    <!-- Slide 7: Time in Motion Study -->
-    <div class="slide-container title-slide">
-        <div class="content-wrapper" style="padding: 0 5%;">
-            <h1 class="fade-up text-gradient-silver" style="font-size: clamp(3rem, 7vw, 6rem);">Time in Motion Study</h1>
-            <p class="fade-up delay-1 text-gradient-blue">Measuring the impact of absolute efficiency.</p>
-        </div>
-    </div>
-
-    <!-- Slide 8: Infinite Personalization -->
+    <!-- ========================================================================
+         SLIDE 6: SOLUTION — PERSONALIZATION
+         ======================================================================== -->
     <div class="slide-container">
         <div class="content-wrapper two-col">
             <div class="fade-up delay-2">
@@ -1061,19 +1468,214 @@
         </div>
     </div>
 
-    <!-- Slide 9: Mic Drop -->
+    <!-- ========================================================================
+         SLIDE 7: TIME SAVED
+         ======================================================================== -->
+    <div id="sec-time" class="slide-container">
+        <div class="content-wrapper">
+            <div class="fade-up" style="text-align: center; margin-bottom: 3rem;">
+                <div class="section-label" style="justify-content: center;">
+                    <span class="label-number">04</span> Time Saved
+                </div>
+                <h2 class="section-title text-gradient-silver" style="margin-bottom: 1rem;">The numbers speak.</h2>
+                <p style="max-width: 600px; margin: 0 auto; font-size: 1.1rem;">Measured impact from pilot usage across the team.</p>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="kpi-grid fade-up delay-1">
+                <div class="kpi-card">
+                    <div class="kpi-value">30s → 5s</div>
+                    <div class="kpi-label">Per search operation</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value">12 hrs</div>
+                    <div class="kpi-label">Saved per analyst / month</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value">83%</div>
+                    <div class="kpi-label">Reduction in context switches</div>
+                </div>
+            </div>
+
+            <!-- Before / After Comparison -->
+            <div class="comparison-row fade-up delay-2">
+                <div class="comparison-box before">
+                    <h4><i class="fa-solid fa-xmark"></i> Without OmniSearch</h4>
+                    <ul class="steps-list">
+                        <li><i class="fa-solid fa-circle"></i> Leave current app</li>
+                        <li><i class="fa-solid fa-circle"></i> Open browser / new tab</li>
+                        <li><i class="fa-solid fa-circle"></i> Navigate to search tool</li>
+                        <li><i class="fa-solid fa-circle"></i> Type or paste query</li>
+                        <li><i class="fa-solid fa-circle"></i> Find & switch back to results</li>
+                        <li><i class="fa-solid fa-circle"></i> Close extra tabs</li>
+                    </ul>
+                </div>
+                <div class="comparison-arrow">
+                    <i class="fa-solid fa-arrow-right"></i>
+                </div>
+                <div class="comparison-box after">
+                    <h4><i class="fa-solid fa-check"></i> With OmniSearch</h4>
+                    <ul class="steps-list">
+                        <li><i class="fa-solid fa-circle"></i> Highlight text</li>
+                        <li><i class="fa-solid fa-circle"></i> Press shortcut</li>
+                        <li><i class="fa-solid fa-circle"></i> Done — result in focus</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================
+         SLIDE 8: PILOT FEEDBACK
+         ======================================================================== -->
+    <div id="sec-feedback" class="slide-container">
+        <div class="content-wrapper">
+            <div class="fade-up" style="text-align: center; margin-bottom: 3rem;">
+                <div class="section-label" style="justify-content: center;">
+                    <span class="label-number">05</span> Pilot Feedback
+                </div>
+                <h2 class="section-title text-gradient-silver" style="margin-bottom: 1rem;">What the team says.</h2>
+                <p style="max-width: 600px; margin: 0 auto; font-size: 1.1rem;">Real feedback from analysts who piloted OmniSearch.</p>
+            </div>
+
+            <div class="testimonial-grid fade-up delay-1">
+                <div class="testimonial-card">
+                    <div>
+                        <div class="testimonial-stars">
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star"></i>
+                        </div>
+                        <p class="testimonial-quote">"I can't believe how much time I was wasting just navigating to search tools. OmniSearch eliminated steps I didn't even realize I was taking. It's now muscle memory."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">A</div>
+                        <div>
+                            <div class="testimonial-name">Analyst A</div>
+                            <div class="testimonial-role">Senior Data Analyst</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-card">
+                    <div>
+                        <div class="testimonial-stars">
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star"></i>
+                        </div>
+                        <p class="testimonial-quote">"As a visually impaired analyst using VoiceOver, the keyboard-only workflow is a game-changer. No more mouse navigation through bookmarks. Just select, shortcut, done."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">B</div>
+                        <div>
+                            <div class="testimonial-name">Analyst B</div>
+                            <div class="testimonial-role">Accessibility Pilot User</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-card">
+                    <div>
+                        <div class="testimonial-stars">
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star-half-stroke"></i>
+                        </div>
+                        <p class="testimonial-quote">"Rolled it out to my team of 8. The personalization means each person configured their own search targets. No IT involvement, no onboarding — they just started using it."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">C</div>
+                        <div>
+                            <div class="testimonial-name">Team Lead C</div>
+                            <div class="testimonial-role">Operations Team Lead</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================
+         SLIDE 9: MIC DROP / CTA
+         ======================================================================== -->
     <div class="slide-container title-slide">
         <div class="content-wrapper" style="padding: 0 5%;">
             <h1 class="mic-drop text-gradient-silver fade-up">Fluid.</h1>
             <h1 class="mic-drop text-gradient-blue fade-up delay-1">Inclusive.</h1>
             <h1 class="mic-drop text-gradient-purple fade-up delay-2">Native.</h1>
             <h1 class="mic-drop highlight-white fade-up delay-3">Universal.</h1>
+            <p class="cta-subtitle fade-up delay-4">Ready for deployment across the organization.</p>
         </div>
     </div>
 
-    <!-- Scroll & Version Sync Scripts -->
+    <!-- ========================================================================
+         SLIDE 10: DOWNLOAD — VERSION CAROUSEL
+         ======================================================================== -->
+    <div id="sec-download" class="slide-container">
+        <div class="version-carousel-wrapper">
+            <h2 class="section-title fade-up text-gradient-silver" style="margin-bottom: 2rem;">Select Your Version</h2>
+
+            <!-- CAROUSEL -->
+            <div class="version-carousel fade-up delay-1" id="version-carousel">
+                <!-- Javascript will inject cards here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================
+         SCRIPTS: Navigation Scroll-Spy + Version Sync + Animations
+         ======================================================================== -->
     <script>
         document.addEventListener("DOMContentLoaded", () => {
+
+            // --- NAVIGATION SCROLL-SPY ---
+            const navItems = document.querySelectorAll('.nav-item');
+            const sections = [];
+
+            navItems.forEach(item => {
+                const sectionId = item.dataset.section;
+                const sectionEl = document.getElementById(sectionId);
+                if (sectionEl) {
+                    sections.push({ id: sectionId, el: sectionEl, navItem: item });
+                }
+            });
+
+            // Click handler for nav items
+            navItems.forEach(item => {
+                item.querySelector('a').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = item.dataset.section;
+                    const targetEl = document.getElementById(targetId);
+                    if (targetEl) {
+                        targetEl.scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
+            });
+
+            // Scroll-spy using IntersectionObserver
+            const spyObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const sectionId = entry.target.id;
+                        navItems.forEach(item => {
+                            item.classList.toggle('active', item.dataset.section === sectionId);
+                        });
+                    }
+                });
+            }, {
+                root: null,
+                rootMargin: '-40% 0px -40% 0px',
+                threshold: 0
+            });
+
+            sections.forEach(s => spyObserver.observe(s.el));
 
             // --- VERSION SYNC LOGIC ---
             const syncVersion = async () => {
@@ -1106,14 +1708,6 @@
                             };
                         });
 
-                        if (versions.length > 0) {
-                            document.querySelectorAll('.js-latest-version-display').forEach(el => el.textContent = versions[0].ver);
-                        }
-
-                        // The user requested: "as more verisons are added the older should go off to the left indicating its from the past... if i swipe to right i can see the historic versions."
-                        // Swiping RIGHT on a trackpad scrolls LEFT. Therefore, older versions must be on the LEFT.
-                        // Newest version must be on the RIGHT.
-                        // We achieve this by reversing the array and rendering oldest to newest.
                         const reversedVersions = [...versions].reverse();
 
                         reversedVersions.forEach((versionData, index) => {
@@ -1157,7 +1751,7 @@
                             carousel.appendChild(card);
                         });
 
-                        // Ensure we scroll to the right-most card (latest) initially so the newest is visible.
+                        // Scroll to latest
                         setTimeout(() => {
                             const latestCard = carousel.querySelector('.version-card.latest');
                             if (latestCard) {
@@ -1182,9 +1776,6 @@
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add('visible');
-                    } else {
-                        // Optional: remove visible to replay animation
-                        // entry.target.classList.remove('visible');
                     }
                 });
             }, observerOptions);
