@@ -83,7 +83,7 @@ on run {input, parameters}
 			else
 				set lowerTerm to do shell script "echo " & quoted form of searchTerm & " | tr '[:upper:]' '[:lower:]'"
 				
-				if lowerTerm starts with "gl_" or lowerTerm is "gl_" then
+				if lowerTerm is "gl_" then
 					set preSelectedEngine to "Guidelines"
 				else if lowerTerm contains "marketingtools.apple.com" or lowerTerm contains "applemediaservices.com" or lowerTerm contains "marketing" then
 					set preSelectedEngine to "Apple Marketing"
