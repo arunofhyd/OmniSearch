@@ -42,7 +42,7 @@ on run {input, parameters}
 		set guidelinesFile to omniFolder & "guidelines.json"
 		
 		-- Create default guidelines.json if it doesn't exist yet
-		do shell script "python3 -c \"import os, json; f='" & guidelinesFile & "'; os.path.exists(f) or open(f,'w').write(json.dumps({'Project Alpha Guidelines': 'https://confluence.company.com/alpha', 'Design System Specs': 'https://figma.com/@design', 'API Documentation': 'https://api.company.com/docs'}, indent=2))\""
+		do shell script "python3 -c \"import os, json; f='" & guidelinesFile & "'; os.path.exists(f) or open(f,'w').write(json.dumps({'Title': 'https://example.com', 'Apple Webpage': 'https://apple.com'}, indent=2))\""
 		
 		-- MAGIC KEYWORDS: Super easy user management
 		set isResetCommand to false
