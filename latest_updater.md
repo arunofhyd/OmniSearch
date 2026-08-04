@@ -42,7 +42,7 @@ on run {input, parameters}
 		set guidelinesFile to omniFolder & "guidelines.json"
 		
 		-- Create default guidelines.json if it doesn't exist yet
-		do shell script "python3 -c \"import os, json; f='" & guidelinesFile & "'; os.path.exists(f) or open(f,'w').write(json.dumps({'_NOTE': 'Format: \\\"Title\\\": \\\"URL\\\". Put a comma at the end of every line EXCEPT the last entry!', 'Title': 'https://example.com', 'Apple Webpage': 'https://apple.com'}, indent=2))\""
+		do shell script "python3 -c \"import os, json; f='" & guidelinesFile & "'; os.path.exists(f) or open(f,'w').write(json.dumps({'_NOTE': 'Add a comma at the end of every line except the last.', 'Title': 'https://example.com', 'Apple Webpage': 'https://apple.com'}, indent=2))\""
 		
 		-- MAGIC KEYWORDS: Super easy user management
 		set isResetCommand to false
