@@ -83,9 +83,8 @@ on run {input, parameters}
 		set oldDelims to AppleScript's text item delimiters
 		
 		if not isResetCommand then
-			if searchTerm starts with "http" or searchTerm starts with "www." or searchTerm contains "://" then
+			if searchTerm starts with "http" then
 				set isDirectURL to true
-				if searchTerm starts with "www." then set searchTerm to "https://" & searchTerm
 			else
 				set lowerTerm to do shell script "echo " & quoted form of searchTerm & " | tr '[:upper:]' '[:lower:]'"
 				
