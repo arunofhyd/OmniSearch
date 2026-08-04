@@ -42,7 +42,7 @@ on run {input, parameters}
 		set guidelinesFile to omniFolder & "guidelines.json"
 		
 		-- Create default guidelines.json if it doesn't exist yet
-		do shell script "python3 -c \"import os, json; f='" & guidelinesFile & "'; os.path.exists(f) or open(f,'w').write(json.dumps({'Title': 'https://example.com', 'Apple Webpage': 'https://apple.com'}, indent=2))\""
+		do shell script "python3 -c \"import os, json; f='" & guidelinesFile & "'; os.path.exists(f) or open(f,'w').write(json.dumps({'_NOTE': 'Format: \\\"Title\\\": \\\"URL\\\". Put a comma at the end of every line EXCEPT the last entry!', 'Title': 'https://example.com', 'Apple Webpage': 'https://apple.com'}, indent=2))\""
 		
 		-- MAGIC KEYWORDS: Super easy user management
 		set isResetCommand to false
@@ -564,7 +564,7 @@ on run {input, parameters}
 			end if
 			
 			if chosenEngine contains "Guidelines" then
-				set getKeysCmd to "python3 -c \"import json; d=json.load(open('" & guidelinesFile & "')); print('\\n'.join(d.keys()))\""
+				set getKeysCmd to "python3 -c \"import json; d=json.load(open('" & guidelinesFile & "')); print('\\n'.join([k for k in d.keys() if not k.startswith('_')]))\""
 				set rawGuidelineTitles to paragraphs of (do shell script getKeysCmd)
 				
 				set numberedGuidelineTitles to {}
