@@ -19,13 +19,16 @@ async function captureSlides() {
 
     await page.goto('file:///Users/arunthomas/.gemini/antigravity-ide/scratch/OmniSearch/index.html', { waitUntil: 'load' });
 
-    // Hide navbar and edit actions for clean slide capture
+    // Hide navbar and remove padding for clean 16:9 full-screen slide capture
     await page.evaluate(() => {
         const nav = document.getElementById('presentation-nav');
         if (nav) nav.style.display = 'none';
         
         const deck = document.getElementById('presentation-deck');
-        if (deck) deck.style.paddingTop = '0px';
+        if (deck) {
+            deck.style.paddingTop = '0px';
+            deck.style.height = '100vh';
+        }
 
         document.querySelectorAll('.slide-container').forEach(slide => {
             slide.style.height = '100vh';
@@ -40,33 +43,34 @@ async function captureSlides() {
         });
     });
 
-    const slides = await page.$$('.slide-container');
-    console.log(`Found ${slides.length} slides.`);
+    const slideCount = await page.evaluate(() => document.querySelectorAll('.slide-container').length);
+    console.log(`Found ${slideCount} slides.`);
 
     const outputDir = path.join(__dirname, 'slide_images');
     if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir);
     }
 
-    for (let i = 0; i < slides.length; i++) {
-        // Scroll target slide into view
+    for (let i = 0; i < slideCount; i++) {
+        // Explicitly set presentation-deck.scrollTop to exact offsetTop of slide i
         await page.evaluate((idx) => {
-            const all = document.querySelectorAll('.slide-container');
-            if (all[idx]) {
-                all[idx].scrollIntoView();
+            const deck = document.getElementById('presentation-deck');
+            const slides = document.querySelectorAll('.slide-container');
+            if (deck && slides[idx]) {
+                deck.scrollTop = slides[idx].offsetTop;
             }
         }, i);
 
-        // Brief delay for animations / dynamic elements to render
+        // Brief delay for rendering & animations
         await new Promise(r => setTimeout(r, 600));
 
         const imagePath = path.join(outputDir, `slide_${String(i + 1).padStart(2, '0')}.png`);
-        await slides[i].screenshot({ path: imagePath, type: 'png' });
-        console.log(`Captured slide ${i + 1}/${slides.length} -> ${imagePath}`);
+        await page.screenshot({ path: imagePath, type: 'png', fullPage: false });
+        console.log(`Captured slide ${i + 1}/${slideCount} -> ${imagePath}`);
     }
 
     await browser.close();
-    console.log("All slide captures complete!");
+    console.log("All 10 unique slide captures complete!");
 }
 
 captureSlides().catch(err => {
