@@ -39,6 +39,10 @@ on run {input, parameters}
 		set omniFolder to homeFolder & "OmniSearch/"
 		do shell script "mkdir -p " & quoted form of omniFolder
 		set prefsFile to omniFolder & "OmniSearch_Preferences.txt"
+		set guidelinesFile to omniFolder & "guidelines.json"
+		
+		-- Create default guidelines.json if it doesn't exist yet
+		do shell script "python3 -c \"import os, json; f='" & guidelinesFile & "'; os.path.exists(f) or open(f,'w').write(json.dumps({'Project Alpha Guidelines': 'https://confluence.company.com/alpha', 'Design System Specs': 'https://figma.com/@design', 'API Documentation': 'https://api.company.com/docs'}, indent=2))\""
 		
 		-- MAGIC KEYWORDS: Super easy user management
 		set isResetCommand to false
@@ -49,6 +53,16 @@ on run {input, parameters}
 				tell application uiApp
 					activate
 					display dialog "Preferences file not found. Try searching for 'omnireset' to generate it." buttons {"OK"} default button "OK"
+				end tell
+			end try
+			return (searchTerm as string)
+		else if searchTerm contains "omnigl_" then
+			try
+				do shell script "open " & quoted form of guidelinesFile
+			on error
+				tell application uiApp
+					activate
+					display dialog "Guidelines file not found." buttons {"OK"} default button "OK"
 				end tell
 			end try
 			return (searchTerm as string)
@@ -67,40 +81,46 @@ on run {input, parameters}
 		set oldDelims to AppleScript's text item delimiters
 		
 		if not isResetCommand then
-			if searchTerm contains "marketingtools.apple.com" or searchTerm contains "applemediaservices.com" then
-				set preSelectedEngine to "Apple Marketing"
-				if searchTerm contains "?q=" then
-					set AppleScript's text item delimiters to "?q="
-				else if searchTerm contains "&q=" then
-					set AppleScript's text item delimiters to "&q="
-				end if
-				try
-					set searchTerm to text item 2 of searchTerm
-				end try
-			else if searchTerm contains "music.apple.com" then
-				set preSelectedEngine to "Apple Music"
-				if searchTerm contains "?term=" then
-					set AppleScript's text item delimiters to "?term="
-				else if searchTerm contains "&term=" then
-					set AppleScript's text item delimiters to "&term="
-				end if
-				try
-					set searchTerm to text item 2 of searchTerm
-				end try
-			else if searchTerm contains "google.com/search" then
-				set preSelectedEngine to "Google"
-				if searchTerm contains "?q=" then
-					set AppleScript's text item delimiters to "?q="
-				else if searchTerm contains "&q=" then
-					set AppleScript's text item delimiters to "&q="
-				end if
-				try
-					set tempTerm to text item 2 of searchTerm
-					set AppleScript's text item delimiters to "&"
-					set searchTerm to text item 1 of tempTerm
-				end try
-			else if searchTerm starts with "http" then
+			if searchTerm starts with "http" then
 				set isDirectURL to true
+			else
+				set lowerTerm to do shell script "echo " & quoted form of searchTerm & " | tr '[:upper:]' '[:lower:]'"
+				
+				if lowerTerm is "gl_" then
+					set preSelectedEngine to "Guidelines"
+				else if lowerTerm contains "marketingtools.apple.com" or lowerTerm contains "applemediaservices.com" or lowerTerm contains "marketing" then
+					set preSelectedEngine to "Apple Marketing"
+					if searchTerm contains "?q=" then
+						set AppleScript's text item delimiters to "?q="
+					else if searchTerm contains "&q=" then
+						set AppleScript's text item delimiters to "&q="
+					end if
+					try
+						set searchTerm to text item 2 of searchTerm
+					end try
+				else if lowerTerm contains "music.apple.com" or lowerTerm contains "music" then
+					set preSelectedEngine to "Apple Music"
+					if searchTerm contains "?term=" then
+						set AppleScript's text item delimiters to "?term="
+					else if searchTerm contains "&term=" then
+						set AppleScript's text item delimiters to "&term="
+					end if
+					try
+						set searchTerm to text item 2 of searchTerm
+					end try
+				else if lowerTerm contains "google.com/search" or lowerTerm contains "google" then
+					set preSelectedEngine to "Google"
+					if searchTerm contains "?q=" then
+						set AppleScript's text item delimiters to "?q="
+					else if searchTerm contains "&q=" then
+						set AppleScript's text item delimiters to "&q="
+					end if
+					try
+						set tempTerm to text item 2 of searchTerm
+						set AppleScript's text item delimiters to "&"
+						set searchTerm to text item 1 of tempTerm
+					end try
+				end if
 			end if
 		end if
 		set AppleScript's text item delimiters to oldDelims
@@ -296,8 +316,10 @@ on run {input, parameters}
 				set finishText to "Setup Complete! 🎉" & return & return
 				set finishText to finishText & "Your settings have been saved to:" & return & "Home > OmniSearch > OmniSearch_Preferences.txt" & return & return
 				set finishText to finishText & "💡 MAGIC SHORTCUTS:" & return
-				set finishText to finishText & "• Search 'omnisettings' to quickly open this file." & return
-				set finishText to finishText & "• Search 'omnireset' to run this setup wizard again." & return & return
+				set finishText to finishText & "• Search 'gl_' to pick a Project Guideline." & return
+				set finishText to finishText & "• Search 'omnigl_' to edit your Guidelines links doc." & return
+				set finishText to finishText & "• Search 'omnisettings' to open preferences." & return
+				set finishText to finishText & "• Search 'omnireset' to run setup wizard." & return & return
 				set finishText to finishText & "A copy of these details has been saved to your Desktop."
 				
 				display dialog finishText with title "OmniSearch Setup Complete" buttons {"Awesome!"} default button "Awesome!" with icon note
@@ -375,7 +397,7 @@ on run {input, parameters}
 		
 		-- If they only typed omnireset, we stop the script here so it doesn't search safari for "omnireset"
 		if isResetCommand then return (searchTerm as string)
-		
+
 		-- ==========================================
 		-- AUTO-UPDATE CHECK:
 		-- ==========================================
@@ -487,6 +509,7 @@ on run {input, parameters}
 				-- Silent fail on network error to allow search to proceed
 			end try
 		end if
+
 		
 		-- ==========================================
 		-- DATA VALIDATION & FALLBACK LOGIC
@@ -573,8 +596,54 @@ on run {input, parameters}
 				set chosenEngine to "Apple Marketing"
 			end if
 			
-			set matchingTargets to {}
-			set availableRegions to {}
+			if chosenEngine contains "Guidelines" then
+				set getKeysCmd to "python3 -c \"import json; d=json.load(open('" & guidelinesFile & "')); print('\\n'.join(d.keys()))\""
+				set rawGuidelineTitles to paragraphs of (do shell script getKeysCmd)
+				
+				set numberedGuidelineTitles to {}
+				set gCounter to 1
+				set totalGuidelines to count of rawGuidelineTitles
+				
+				repeat with g_idx from 1 to totalGuidelines
+					set gTitle to item g_idx of rawGuidelineTitles
+					if gTitle is not "" then
+						set end of numberedGuidelineTitles to (gCounter as string) & ". " & gTitle
+						set gCounter to gCounter + 1
+					end if
+				end repeat
+				
+				set editOption to (gCounter as string) & ". ✏️ Edit Guidelines List..."
+				set end of numberedGuidelineTitles to editOption
+				
+				tell application uiApp
+					activate
+					set chosenGuideline to choose from list numberedGuidelineTitles with prompt ("Select Project Guidelines to open:" & return) default items {item 1 of numberedGuidelineTitles} with title "OmniSearch Guidelines"
+				end tell
+				
+				if chosenGuideline is not false then
+					set selectedChoice to item 1 of chosenGuideline
+					if selectedChoice contains "Edit Guidelines List..." then
+						do shell script "open " & quoted form of guidelinesFile
+						return (searchTerm as string)
+					else
+						set oldDelims to AppleScript's text item delimiters
+						set AppleScript's text item delimiters to ". "
+						set titlePieces to text items of selectedChoice
+						set selectedTitle to items 2 thru -1 of titlePieces as string
+						set AppleScript's text item delimiters to oldDelims
+						
+						set getUrlCmd to "python3 -c \"import json, sys; d=json.load(open('" & guidelinesFile & "')); print(d[sys.argv[1]])\" " & quoted form of selectedTitle
+						set targetURL to do shell script getUrlCmd
+						set isDirectURL to true
+					end if
+				else
+					return (searchTerm as string)
+				end if
+			end if
+			
+			if not isDirectURL then
+				set matchingTargets to {}
+				set availableRegions to {}
 			
 			repeat with tgt_idx from 1 to count of userSavedTargetsList
 				set tgt to item tgt_idx of userSavedTargetsList
@@ -676,6 +745,7 @@ on run {input, parameters}
 				set AppleScript's text item delimiters to oldDelims
 			end if
 		end if
+	end if
 		
 		-- ==========================================
 		-- 6. SAFARI EXECUTION
