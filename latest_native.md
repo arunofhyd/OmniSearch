@@ -17,8 +17,13 @@ on run {input, parameters}
 			set uiApp to "System Events"
 		end try
 		
-		-- 1. GET THE INPUT: 
-		set searchTerm to (item 1 of input) as string
+		-- 1. GET THE INPUT (SAFE EMPTY LIST FALLBACK): 
+		set searchTerm to ""
+		try
+			if (count of input) > 0 then
+				set searchTerm to (item 1 of input) as string
+			end if
+		end try
 		
 		-- ==========================================
 		-- GET DESKTOP BOUNDS EARLY (PREVENTS HOTKEY DEADLOCK)
