@@ -1354,6 +1354,7 @@
             <li class="nav-item" data-section="sec-download">
                 <a href="#sec-download"><i class="fa-solid fa-cloud-arrow-down"></i> <span class="nav-label-text">Download</span></a>
             </li>
+        </ul>
         <div class="nav-right-actions">
             <button class="nav-btn-icon" id="edit-mode-btn" title="Toggle Live Edit Mode (Click text to edit)"><i class="fa-solid fa-pen-to-square"></i></button>
             <button class="nav-btn-icon" id="reset-edits-btn" title="Reset All Edits to Default" style="display:none;"><i class="fa-solid fa-rotate-left"></i></button>
@@ -1885,34 +1886,15 @@
                 }
             });
 
-            // --- PRESENTER FULLSCREEN MODE ---
-            const fsBtn = document.getElementById('fullscreen-btn');
-            if (fsBtn) {
-                fsBtn.addEventListener('click', () => {
-                    if (!document.fullscreenElement) {
-                        document.documentElement.requestFullscreen().catch(err => console.log("Fullscreen request failed:", err));
-                    } else {
-                        document.exitFullscreen().catch(err => console.log("Exit fullscreen failed:", err));
-                    }
-                });
-                document.addEventListener('fullscreenchange', () => {
-                    if (!document.fullscreenElement) {
-                        fsBtn.innerHTML = '<i class="fa-solid fa-expand"></i>';
-                    } else {
-                        // Automatically turn off Edit Mode when entering Presenter / Fullscreen Mode
-                        if (isEditMode && editBtn) {
-                            editBtn.click();
-                        }
-                        fsBtn.innerHTML = '<i class="fa-solid fa-compress"></i>';
-                    }
-                });
-            }
-
             // --- INTERACTIVE INLINE EDIT MODE & LOCALSTORAGE PERSISTENCE ---
             const STORAGE_KEY = 'omnisearch_presentation_edits';
             const editBtn = document.getElementById('edit-mode-btn');
             const resetBtn = document.getElementById('reset-edits-btn');
             const exportBtn = document.getElementById('export-html-btn');
+            const fsBtn = document.getElementById('fullscreen-btn');
+
+            let isEditMode = false;
+            let editableElements = [];
 
             const editSelectors = [
                 'h1', 'h2', 'h3', 'h4', '.title-slide p', '.presenter-name-br',
@@ -1921,9 +1903,6 @@
                 '.testimonial-quote', '.testimonial-name', '.testimonial-role',
                 '.cta-subtitle', '.mac-menu-item span', '.pillar span'
             ];
-
-            let isEditMode = false;
-            let editableElements = [];
 
             let elementIndex = 0;
             document.querySelectorAll('.slide-container').forEach(slide => {
@@ -1973,22 +1952,24 @@
                 if (resetBtn) resetBtn.style.display = 'inline-flex';
             };
 
-            if (editBtn) {
-                editBtn.addEventListener('click', () => {
-                    isEditMode = !isEditMode;
-                    document.body.classList.toggle('edit-mode-active', isEditMode);
-                    editBtn.classList.toggle('active', isEditMode);
+            function toggleEditMode(forceState) {
+                isEditMode = (typeof forceState === 'boolean') ? forceState : !isEditMode;
+                document.body.classList.toggle('edit-mode-active', isEditMode);
+                if (editBtn) editBtn.classList.toggle('active', isEditMode);
 
-                    editableElements.forEach(el => {
-                        el.contentEditable = isEditMode ? 'true' : 'false';
-                        if (isEditMode) {
-                            el.addEventListener('input', saveEdits);
-                        }
-                    });
-
-                    if (exportBtn) exportBtn.style.display = isEditMode ? 'inline-flex' : 'none';
-                    if (resetBtn) resetBtn.style.display = (isEditMode || localStorage.getItem(STORAGE_KEY)) ? 'inline-flex' : 'none';
+                editableElements.forEach(el => {
+                    el.contentEditable = isEditMode ? 'true' : 'false';
+                    if (isEditMode) {
+                        el.addEventListener('input', saveEdits);
+                    }
                 });
+
+                if (exportBtn) exportBtn.style.display = isEditMode ? 'inline-flex' : 'none';
+                if (resetBtn) resetBtn.style.display = (isEditMode || localStorage.getItem(STORAGE_KEY)) ? 'inline-flex' : 'none';
+            }
+
+            if (editBtn) {
+                editBtn.addEventListener('click', () => toggleEditMode());
             }
 
             if (resetBtn) {
@@ -2017,6 +1998,43 @@
                     a.download = 'index.html';
                     a.click();
                     URL.revokeObjectURL(url);
+                });
+            }
+
+            // --- CROSS-BROWSER FULLSCREEN HANDLER (Safari / Chrome / Firefox / Edge) ---
+            function isFullscreenActive() {
+                return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+            }
+
+            function toggleFullscreen() {
+                const doc = document.documentElement;
+                if (!isFullscreenActive()) {
+                    if (doc.requestFullscreen) {
+                        doc.requestFullscreen().catch(() => {});
+                    } else if (doc.webkitRequestFullscreen) {
+                        doc.webkitRequestFullscreen();
+                    } else if (doc.mozRequestFullScreen) {
+                        doc.mozRequestFullScreen();
+                    } else if (doc.msRequestFullscreen) {
+                        doc.msRequestFullscreen();
+                    }
+                } else {
+                    const exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+                    if (exit) exit.call(document);
+                }
+            }
+
+            if (fsBtn) {
+                fsBtn.addEventListener('click', toggleFullscreen);
+
+                ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(evtName => {
+                    document.addEventListener(evtName, () => {
+                        const fs = isFullscreenActive();
+                        fsBtn.innerHTML = fs ? '<i class="fa-solid fa-compress"></i>' : '<i class="fa-solid fa-expand"></i>';
+                        if (fs && isEditMode) {
+                            toggleEditMode(false);
+                        }
+                    });
                 });
             }
 
