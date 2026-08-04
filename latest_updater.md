@@ -86,8 +86,9 @@ on run {input, parameters}
 		set oldDelims to AppleScript's text item delimiters
 		
 		if not isResetCommand then
-			if searchTerm starts with "http" then
+			if searchTerm starts with "http" or searchTerm starts with "www." or searchTerm contains "://" then
 				set isDirectURL to true
+				if searchTerm starts with "www." then set searchTerm to "https://" & searchTerm
 			else
 				set lowerTerm to do shell script "echo " & quoted form of searchTerm & " | tr '[:upper:]' '[:lower:]'"
 				
@@ -699,12 +700,22 @@ on run {input, parameters}
 			set lowerLocaleDash to do shell script "echo " & quoted form of extractedLocale & " | tr '[:upper:]' '[:lower:]' | tr '_' '-'"
 			set lowerCountry to do shell script "echo " & quoted form of locCountry & " | tr '[:upper:]' '[:lower:]'"
 			
-			if isMarketing then
-				set targetURL to "https://toolbox.marketingtools.apple.com/en-us?sf=" & lowerCountry & "&q=" & searchTerm
-			else if isMusic then
-				set targetURL to "https://music.apple.com/" & lowerCountry & "/search?term=" & searchTerm
-			else if isGoogleSearch then
-				set targetURL to "https://www.google.com/search?q=" & searchTerm & "&gl=" & lowerCountry & "&hl=" & lowerLocaleDash
+			if searchTerm is "" then
+				if isMarketing then
+					set targetURL to "https://marketingtools.apple.com"
+				else if isMusic then
+					set targetURL to "https://music.apple.com/" & lowerCountry
+				else if isGoogleSearch then
+					set targetURL to "https://www.google.com"
+				end if
+			else
+				if isMarketing then
+					set targetURL to "https://toolbox.marketingtools.apple.com/en-us?sf=" & lowerCountry & "&q=" & searchTerm
+				else if isMusic then
+					set targetURL to "https://music.apple.com/" & lowerCountry & "/search?term=" & searchTerm
+				else if isGoogleSearch then
+					set targetURL to "https://www.google.com/search?q=" & searchTerm & "&gl=" & lowerCountry & "&hl=" & lowerLocaleDash
+				end if
 			end if
 			
 			-- CLEAN THE LINK: Swap spaces for "+" on Marketing tools
