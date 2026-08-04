@@ -434,11 +434,15 @@ on run {input, parameters}
 		
 		if shouldCheck then
 			try
-				-- Pinging the server with a 2-second timeout.
-				-- We use grep and cut to extract the version number from the JSON file.
-				set remoteVersionString to do shell script "curl -s --max-time 2 https://raw.githubusercontent.com/arunofhyd/OmniSearch/main/version.json | grep -o '\"version\": *\"[^\"]*\"' | head -n 1 | cut -d'\"' -f4"
+				set versionData to do shell script "python3 -c \"import subprocess, json; res=subprocess.run(['curl', '-s', '--max-time', '2', 'https://raw.githubusercontent.com/arunofhyd/OmniSearch/main/version.json'], capture_output=True, text=True).stdout; d=json.loads(res); v=d['versions'][0]; print(f'{v[\\\"version\\\"]}|{v.get(\\\"link\\\", \\\"https://omniisearch.netlify.app\\\")}')\""
 				
-				if remoteVersionString is not "" then
+				if versionData is not "" then
+					set oldDelims to AppleScript's text item delimiters
+					set AppleScript's text item delimiters to "|"
+					set remoteVersionString to text item 1 of versionData
+					set remoteUpdateLink to text item 2 of versionData
+					set AppleScript's text item delimiters to oldDelims
+					
 					-- Handle decimal points safely across different system locales
 					set oldDelims to AppleScript's text item delimiters
 					set AppleScript's text item delimiters to "."
@@ -452,47 +456,10 @@ on run {input, parameters}
 					-- Compare versions
 					if remoteVersion > currentVersion then
 						tell application uiApp
-							set dialogResult to display dialog "A new version of Omni Search (v" & remoteVersionString & ") is available!" & return & return & "You are currently running v" & currentVersion & ". Would you like to download the update?" with title "Omni Search Update" buttons {"Skip for now", "Open Website"} default button "Open Website"
+							set dialogResult to display dialog "A new version of Omni Search (v" & remoteVersionString & ") is available!" & return & return & "You are currently running v" & currentVersion & ". Would you like to update now?" with title "Omni Search Update" buttons {"Skip for now", "Update Now"} default button "Update Now"
 							
-							if button returned of dialogResult is "Open Website" then
-								-- Get Safari PID safely
-								tell application "System Events"
-									set currentSafariPID to unix id of process "Safari" as text
-								end tell
-								
-								-- Get Cache data to check if we can reuse the window
-								set cacheFile to "/tmp/omnisearch_id.txt"
-								set storedPID to ""
-								set storedID to 0
-								try
-									set cachedData to do shell script "cat " & quoted form of cacheFile
-									-- We use paragraph reading here to match the new cache format
-									set storedPID to paragraph 1 of cachedData
-									set storedID to (paragraph 2 of cachedData) as integer
-								end try
-								
-								tell application "Safari"
-									set updateTargetFound to false
-									
-									-- Specific check to see if OmniSearch window is open to prevent work loss
-									if (storedPID is equal to currentSafariPID) and (storedID is not 0) then
-										try
-											if exists window id storedID then
-												tell window id storedID
-													set URL of current tab to "https://omniisearch.netlify.app"
-													set index to 1
-													set updateTargetFound to true
-												end tell
-											end if
-										end try
-									end if
-									
-									-- If no OmniSearch window, open a NEW window to protect active tabs
-									if not updateTargetFound then
-										make new document with properties {URL:"https://omniisearch.netlify.app"}
-									end if
-									activate
-								end tell
+							if button returned of dialogResult is "Update Now" then
+								open location remoteUpdateLink
 								return (searchTerm as string)
 							end if
 						end tell
