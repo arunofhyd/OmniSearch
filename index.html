@@ -2064,13 +2064,22 @@
                 '.flow-card h4', '.flow-card ul li'
             ];
 
-            let elementIndex = 0;
-            document.querySelectorAll('.slide-container').forEach(slide => {
+            // Clear legacy/corrupted sequential edits from localStorage to prevent text scrambling across slides
+            try {
+                const savedRaw = localStorage.getItem(STORAGE_KEY);
+                if (savedRaw && savedRaw.includes('"edit-1"')) {
+                    localStorage.removeItem(STORAGE_KEY);
+                }
+            } catch(e) {}
+
+            // Tag elements with STABLE deterministic IDs (slide container ID + selector + element index)
+            document.querySelectorAll('.slide-container').forEach((slide, sIdx) => {
+                const slideKey = slide.id || `slide_${sIdx + 1}`;
                 editSelectors.forEach(selector => {
-                    slide.querySelectorAll(selector).forEach(el => {
-                        if (!el.hasAttribute('data-editable-id')) {
-                            el.setAttribute('data-editable-id', `edit-${++elementIndex}`);
-                        }
+                    const cleanSel = selector.replace(/[^a-zA-Z0-9]/g, '_');
+                    slide.querySelectorAll(selector).forEach((el, elIdx) => {
+                        const stableId = `${slideKey}__${cleanSel}_${elIdx + 1}`;
+                        el.setAttribute('data-editable-id', stableId);
                         el.setAttribute('data-editable', 'true');
                         editableElements.push(el);
                     });
