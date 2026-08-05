@@ -1287,6 +1287,25 @@
         .delay-1 { transition-delay: 0.1s; }
         .delay-2 { transition-delay: 0.2s; }
         .delay-3 { transition-delay: 0.3s; }
+
+        /* Live Edit Mode Visual Indicators */
+        body.edit-mode-active [data-editable="true"] {
+            outline: 1px dashed rgba(41, 151, 255, 0.35);
+            outline-offset: 3px;
+            border-radius: 4px;
+            cursor: text;
+            transition: outline 0.2s ease, background 0.2s ease;
+        }
+
+        body.edit-mode-active [data-editable="true"]:hover {
+            outline: 2px solid #2997ff;
+            background: rgba(41, 151, 255, 0.08);
+        }
+
+        body.edit-mode-active [data-editable="true"]:focus {
+            outline: 2px solid #30d158;
+            background: rgba(48, 209, 88, 0.1);
+        }
         /* ==========================================================================
            16. END-TO-END WORKFLOW SLIDE STYLES
            ========================================================================== */
@@ -2056,12 +2075,14 @@
             let editableElements = [];
 
             const editSelectors = [
-                'h1', 'h2', 'h3', 'h4', '.title-slide p', '.presenter-name-br',
-                '.problem-card p', '.body-text-hero', '.feature-title-hero', '.feature-desc-hero',
+                'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'li',
+                '.title-slide p', '.presenter-name-br', '.problem-card p',
+                '.body-text-hero', '.feature-title-hero', '.feature-desc-hero',
                 '.step-item p', '.objective-mission', '.kpi-value', '.kpi-label',
                 '.testimonial-quote', '.testimonial-name', '.testimonial-role',
                 '.cta-subtitle', '.mac-menu-item span', '.pillar span',
-                '.flow-card h4', '.flow-card ul li'
+                '.flow-card h4', '.flow-card ul li', '.locale-pill', '.section-label',
+                '.steps-list li', '.comparison-box h4', '.card-header p'
             ];
 
             // Clear legacy/corrupted sequential edits from localStorage to prevent text scrambling across slides
@@ -2215,7 +2236,16 @@
                         }
                     });
                 });
-            }
+            // Global Presenter Keyboard Shortcuts (Cmd+E / Ctrl+E for Live Edit, Cmd+F / Ctrl+F for Fullscreen)
+            window.addEventListener('keydown', (e) => {
+                if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'e') {
+                    e.preventDefault();
+                    toggleEditMode();
+                } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'f') {
+                    e.preventDefault();
+                    toggleFullscreen();
+                }
+            });
 
             // --- VERSION SYNC LOGIC ---
             const syncVersion = async () => {
