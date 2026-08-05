@@ -1415,6 +1415,96 @@
         }
 
         /* ==========================================================================
+           16B. USER JOURNEY PIPELINE STYLES
+           ========================================================================== */
+        .journey-pipeline {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .journey-step {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 1.2rem;
+        }
+
+        .journey-icon-ring {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            position: relative;
+        }
+
+        .journey-icon-ring.ring-blue {
+            background: radial-gradient(circle, rgba(41, 151, 255, 0.15) 0%, transparent 70%);
+            border: 2px solid rgba(41, 151, 255, 0.4);
+            color: #2997ff;
+            box-shadow: 0 0 30px rgba(41, 151, 255, 0.15);
+        }
+
+        .journey-icon-ring.ring-purple {
+            background: radial-gradient(circle, rgba(191, 90, 242, 0.15) 0%, transparent 70%);
+            border: 2px solid rgba(191, 90, 242, 0.4);
+            color: #bf5af2;
+            box-shadow: 0 0 30px rgba(191, 90, 242, 0.15);
+        }
+
+        .journey-icon-ring.ring-green {
+            background: radial-gradient(circle, rgba(48, 209, 88, 0.15) 0%, transparent 70%);
+            border: 2px solid rgba(48, 209, 88, 0.4);
+            color: #30d158;
+            box-shadow: 0 0 30px rgba(48, 209, 88, 0.15);
+        }
+
+        .journey-step h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .journey-step p {
+            font-size: 0.95rem;
+            color: #a1a1a6;
+            max-width: 220px;
+            line-height: 1.5;
+        }
+
+        .journey-connector {
+            flex: 0 0 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 5rem;
+        }
+
+        .journey-connector svg {
+            width: 80px;
+            height: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .journey-pipeline {
+                flex-direction: column;
+                gap: 2rem;
+            }
+            .journey-connector {
+                padding-bottom: 0;
+                transform: rotate(90deg);
+            }
+        }
+
+        /* ==========================================================================
            17. RESPONSIVE
            ========================================================================== */
         @media (max-width: 768px) {
@@ -1472,7 +1562,7 @@
                 <a href="#sec-solution"><i class="fa-solid fa-wand-magic-sparkles"></i> <span class="nav-label-text">Solution</span></a>
             </li>
             <li class="nav-item" data-section="sec-flow">
-                <a href="#sec-flow"><i class="fa-solid fa-diagram-project"></i> <span class="nav-label-text">Flow</span></a>
+                <a href="#sec-flow"><i class="fa-solid fa-diagram-project"></i> <span class="nav-label-text">Architecture</span></a>
             </li>
             <li class="nav-item" data-section="sec-time">
                 <a href="#sec-time"><i class="fa-solid fa-clock"></i> <span class="nav-label-text">Time Saved</span></a>
@@ -1669,26 +1759,45 @@
     </div>
 
     <!-- ========================================================================
-         SLIDE 5: SOLUTION — HOW IT WORKS
+         SLIDE 5: USER JOURNEY — 3-STEP VISUAL PIPELINE
          ======================================================================== -->
     <div class="slide-container">
         <div class="content-wrapper">
-            <h2 class="section-title fade-up text-gradient-silver" style="margin-bottom: 3rem;">How does it work?</h2>
-            <div class="steps-container">
-                <div class="step-item fade-up delay-1">
-                    <div class="step-number text-gradient-blue">1</div>
-                    <h3 class="highlight-white" style="margin-bottom: 15px; font-size: 2rem;">Highlight</h3>
-                    <p>Select any text, in any app, anywhere on your screen.</p>
+            <div class="fade-up" style="text-align: center; margin-bottom: 3rem;">
+                <h2 class="section-title text-gradient-silver" style="margin-bottom: 0.5rem;">Your workflow. Three moves.</h2>
+                <p style="color: #86868b; font-size: 1.05rem;">What using OmniSearch actually looks like.</p>
+            </div>
+            <div class="journey-pipeline fade-up delay-1">
+                <div class="journey-step">
+                    <div class="journey-icon-ring ring-blue">
+                        <i class="fa-solid fa-i-cursor"></i>
+                    </div>
+                    <h3 class="highlight-white">Select</h3>
+                    <p>Highlight any text in any app on your Mac.</p>
                 </div>
-                <div class="step-item fade-up delay-2">
-                    <div class="step-number text-gradient-purple">2</div>
-                    <h3 class="highlight-white" style="margin-bottom: 15px; font-size: 2rem;">Trigger</h3>
-                    <p>Execute via global keyboard hotkey or right-click mouse.</p>
+                <div class="journey-connector">
+                    <svg viewBox="0 0 80 24" fill="none">
+                        <path d="M0 12 H60 M55 6 L65 12 L55 18" stroke="rgba(255,255,255,0.25)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
                 </div>
-                <div class="step-item fade-up delay-3">
-                    <div class="step-number text-gradient-silver">3</div>
-                    <h3 class="highlight-white" style="margin-bottom: 15px; font-size: 2rem;">Route</h3>
-                    <p>Route the relevant search target to get your result.</p>
+                <div class="journey-step">
+                    <div class="journey-icon-ring ring-purple">
+                        <i class="fa-solid fa-keyboard"></i>
+                    </div>
+                    <h3 class="highlight-white">Shortcut</h3>
+                    <p>Press your hotkey. Pick a destination from the menu.</p>
+                </div>
+                <div class="journey-connector">
+                    <svg viewBox="0 0 80 24" fill="none">
+                        <path d="M0 12 H60 M55 6 L65 12 L55 18" stroke="rgba(255,255,255,0.25)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="journey-step">
+                    <div class="journey-icon-ring ring-green">
+                        <i class="fa-solid fa-bullseye"></i>
+                    </div>
+                    <h3 class="highlight-white">Done</h3>
+                    <p>Result opens instantly in Safari — already in focus.</p>
                 </div>
             </div>
         </div>
@@ -1701,10 +1810,10 @@
         <div class="content-wrapper" style="max-width: 1380px;">
             <div class="fade-up" style="text-align: center; margin-bottom: 1.5rem;">
                 <div class="section-label" style="justify-content: center;">
-                    <span class="label-number">03B</span> Architecture Pipeline
+                    <span class="label-number">03B</span> Under the Hood
                 </div>
-                <h2 class="section-title text-gradient-silver" style="margin-bottom: 0.4rem; font-size: 2.2rem;">End-to-End Execution Flow</h2>
-                <p style="color: #86868b; font-size: 0.95rem;">4-Stage Technical Execution</p>
+                <h2 class="section-title text-gradient-silver" style="margin-bottom: 0.4rem; font-size: 2.2rem;">What Happens Behind the Scenes</h2>
+                <p style="color: #86868b; font-size: 0.95rem;">4-Stage Technical Architecture</p>
             </div>
 
             <div class="flow-cards-grid">
