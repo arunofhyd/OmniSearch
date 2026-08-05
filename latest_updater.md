@@ -1,11 +1,3 @@
-# OmniSearch Native Logic (With Auto-Updater)
-
-This script includes all the safety features of the standard version but adds an **Automatic Update Checker**.
-**Status:** Pending IT Permission. Use this only when authorized.
-
-## The Script
-
-```applescript
 on run {input, parameters}
 	with timeout of 30 seconds
 		set originalApp to path to frontmost application as string
@@ -20,12 +12,16 @@ on run {input, parameters}
 			set uiApp to "System Events"
 		end try
 		
-		-- 1. GET THE INPUT (SAFE EMPTY LIST FALLBACK): 
+		-- 1. GET THE INPUT: 
 		set searchTerm to ""
 		try
-			if (count of input) > 0 then
-				set searchTerm to (item 1 of input) as string
-			end if
+			if (count of input) > 0 then set searchTerm to (item 1 of input) as string
+		end try
+		
+		-- Trim search term to handle empty/whitespace inputs safely
+		set trimmedTerm to searchTerm
+		try
+			set trimmedTerm to do shell script "echo " & quoted form of searchTerm & " | xargs"
 		end try
 		
 		-- ==========================================
@@ -44,10 +40,6 @@ on run {input, parameters}
 		set omniFolder to homeFolder & "OmniSearch/"
 		do shell script "mkdir -p " & quoted form of omniFolder
 		set prefsFile to omniFolder & "OmniSearch_Preferences.txt"
-		set guidelinesFile to omniFolder & "guidelines.json"
-		
-		-- Create default guidelines.json if it doesn't exist yet
-		do shell script "python3 -c \"import os, json; f='" & guidelinesFile & "'; os.path.exists(f) or open(f,'w').write(json.dumps({'_NOTE': 'Add a comma at the end of every line except the last.', 'Title': 'https://example.com', 'Apple Webpage': 'https://apple.com'}, indent=2))\""
 		
 		-- MAGIC KEYWORDS: Super easy user management
 		set isResetCommand to false
@@ -61,16 +53,6 @@ on run {input, parameters}
 				end tell
 			end try
 			return (searchTerm as string)
-		else if searchTerm contains "omnigl_" then
-			try
-				do shell script "open " & quoted form of guidelinesFile
-			on error
-				tell application uiApp
-					activate
-					display dialog "Guidelines file not found." buttons {"OK"} default button "OK"
-				end tell
-			end try
-			return (searchTerm as string)
 		else if searchTerm contains "omnireset" then
 			try
 				do shell script "rm " & quoted form of prefsFile
@@ -79,56 +61,16 @@ on run {input, parameters}
 		end if
 		
 		-- ==========================================
-		-- 3. TERM EXTRACTOR (Handles full URLs passed from existing shortcuts)
+		-- 3. TERM EXTRACTOR & DIRECT URL CHECK
 		-- ==========================================
-		set preSelectedEngine to ""
 		set isDirectURL to false
-		set oldDelims to AppleScript's text item delimiters
+		set preSelectedEngine to ""
 		
 		if not isResetCommand then
 			if searchTerm starts with "http" then
 				set isDirectURL to true
-			else
-				set lowerTerm to do shell script "echo " & quoted form of searchTerm & " | tr '[:upper:]' '[:lower:]'"
-				
-				if lowerTerm is "gl_" then
-					set preSelectedEngine to "Guidelines"
-				else if lowerTerm contains "marketingtools.apple.com" or lowerTerm contains "applemediaservices.com" or lowerTerm contains "marketing" then
-					set preSelectedEngine to "Apple Marketing"
-					if searchTerm contains "?q=" then
-						set AppleScript's text item delimiters to "?q="
-					else if searchTerm contains "&q=" then
-						set AppleScript's text item delimiters to "&q="
-					end if
-					try
-						set searchTerm to text item 2 of searchTerm
-					end try
-				else if lowerTerm contains "music.apple.com" or lowerTerm contains "music" then
-					set preSelectedEngine to "Apple Music"
-					if searchTerm contains "?term=" then
-						set AppleScript's text item delimiters to "?term="
-					else if searchTerm contains "&term=" then
-						set AppleScript's text item delimiters to "&term="
-					end if
-					try
-						set searchTerm to text item 2 of searchTerm
-					end try
-				else if lowerTerm contains "google.com/search" or lowerTerm contains "google" then
-					set preSelectedEngine to "Google"
-					if searchTerm contains "?q=" then
-						set AppleScript's text item delimiters to "?q="
-					else if searchTerm contains "&q=" then
-						set AppleScript's text item delimiters to "&q="
-					end if
-					try
-						set tempTerm to text item 2 of searchTerm
-						set AppleScript's text item delimiters to "&"
-						set searchTerm to text item 1 of tempTerm
-					end try
-				end if
 			end if
 		end if
-		set AppleScript's text item delimiters to oldDelims
 		
 		-- ==========================================
 		-- 4. ONE-TIME SETUP WIZARD & USER PREFS
@@ -321,10 +263,8 @@ on run {input, parameters}
 				set finishText to "Setup Complete! 🎉" & return & return
 				set finishText to finishText & "Your settings have been saved to:" & return & "Home > OmniSearch > OmniSearch_Preferences.txt" & return & return
 				set finishText to finishText & "💡 MAGIC SHORTCUTS:" & return
-				set finishText to finishText & "• Search 'gl_' to pick a Project Guideline." & return
-				set finishText to finishText & "• Search 'omnigl_' to edit your Guidelines links doc." & return
-				set finishText to finishText & "• Search 'omnisettings' to open preferences." & return
-				set finishText to finishText & "• Search 'omnireset' to run setup wizard." & return & return
+				set finishText to finishText & "• Search 'omnisettings' to quickly open this file." & return
+				set finishText to finishText & "• Search 'omnireset' to run this setup wizard again." & return & return
 				set finishText to finishText & "A copy of these details has been saved to your Desktop."
 				
 				display dialog finishText with title "OmniSearch Setup Complete" buttons {"Awesome!"} default button "Awesome!" with icon note
@@ -380,23 +320,14 @@ on run {input, parameters}
 				"Google: " & googleTargets
 			
 			try
-
 				set fileReference to open for access (POSIX file prefsFile) with write permission
-
 				set eof of fileReference to 0
-
 				write prefData to fileReference as «class utf8»
-
 				close access fileReference
-
 			on error
-
 				try
-
 					close access (POSIX file prefsFile)
-
 				end try
-
 			end try
 		end if
 		
@@ -406,18 +337,12 @@ on run {input, parameters}
 		-- ==========================================
 		-- AUTO-UPDATE CHECK:
 		-- ==========================================
-		-- Update Settings:
-		-- "always" (check every run - best for testing)
-		-- "daily"  (standard production setting)
-		-- "weekly" (minimum intrusion)
 		set updateFrequency to "always"
-		
 		set currentVersion to 1.1
 		set dateCache to "/tmp/omnisearch_lastcheck.txt"
 		set todayDate to (current date)
 		set todayDateString to short date string of todayDate
 		
-		-- Retrieve ISO week identifier using shell for "weekly" frequency support
 		set weekIdentifier to do shell script "date +%G-W%V"
 		
 		set shouldCheck to false
@@ -439,7 +364,7 @@ on run {input, parameters}
 		
 		if shouldCheck then
 			try
-				set versionData to do shell script "python3 -c \"import subprocess, json; res=subprocess.run(['curl', '-s', '--max-time', '2', 'https://raw.githubusercontent.com/arunofhyd/OmniSearch/main/version.json'], capture_output=True, text=True).stdout; d=json.loads(res); v=d['versions'][0]; print(f'{v[\\\"version\\\"]}|{v.get(\\\"link\\\", \\\"https://omniisearch.netlify.app\\\")}')\""
+				set versionData to do shell script "python3 -c \"import subprocess, json; res=subprocess.run(['curl', '-s', '--max-time', '2', 'https://raw.githubusercontent.com/arunofhyd/OmniSearch/main/version.json'], capture_output=True, text=True).stdout; d=json.loads(res); v=d['versions'][0]; print(f'{v[\\\"version\\\"]}|{v.get(\\\"link\\\", \\\"\\\")}')\""
 				
 				if versionData is not "" then
 					set oldDelims to AppleScript's text item delimiters
@@ -448,7 +373,6 @@ on run {input, parameters}
 					set remoteUpdateLink to text item 2 of versionData
 					set AppleScript's text item delimiters to oldDelims
 					
-					-- Handle decimal points safely across different system locales
 					set oldDelims to AppleScript's text item delimiters
 					set AppleScript's text item delimiters to "."
 					set remotePieces to text items of remoteVersionString
@@ -458,19 +382,19 @@ on run {input, parameters}
 					
 					set remoteVersion to localizedRemoteVersionString as real
 					
-					-- Compare versions
 					if remoteVersion > currentVersion then
 						tell application uiApp
 							set dialogResult to display dialog "A new version of Omni Search (v" & remoteVersionString & ") is available!" & return & return & "You are currently running v" & currentVersion & ". Would you like to update now?" with title "Omni Search Update" buttons {"Skip for now", "Update Now"} default button "Update Now"
 							
 							if button returned of dialogResult is "Update Now" then
-								open location remoteUpdateLink
+								if remoteUpdateLink is not "" then
+									open location remoteUpdateLink
+								end if
 								return (searchTerm as string)
 							end if
 						end tell
 					end if
 					
-					-- Update cache signature based on current frequency
 					if updateFrequency is "daily" then
 						do shell script "echo " & quoted form of todayDateString & " > " & quoted form of dateCache
 					else if updateFrequency is "weekly" then
@@ -482,7 +406,7 @@ on run {input, parameters}
 			end try
 		end if
 
-		
+
 		-- ==========================================
 		-- DATA VALIDATION & FALLBACK LOGIC
 		-- ==========================================
@@ -531,19 +455,53 @@ on run {input, parameters}
 		-- 5. SMART TARGET MENU & DYNAMIC URL GENERATOR
 		-- ==========================================
 		if isDirectURL then
-			set targetURL to searchTerm
+			set targetURL to (item 1 of input) as string
 			
-			-- FIX FOR INTERLINKED
-			if targetURL contains "interlinked.apple.com/chat?prompt=" then
+			-- DYNAMIC URL CLEANER: Handles ANY search engine passed from Shortcut text blocks
+			-- Checks if search term is empty (URL ends with '=' or has no value after '=')
+			set isQueryEmpty to false
+			if targetURL ends with "=" or targetURL ends with "= " then
+				set isQueryEmpty to true
+			else if targetURL contains "?" then
 				set oldDelims to AppleScript's text item delimiters
-				set AppleScript's text item delimiters to "?prompt="
-				set baseURL to text item 1 of targetURL
-				set promptText to text item 2 of targetURL
-				
-				set promptText to do shell script "python3 -c 'import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1]))' " & quoted form of promptText
-				
-				set targetURL to baseURL & "?prompt=" & promptText
+				set AppleScript's text item delimiters to "="
+				set urlParts to text items of targetURL
 				set AppleScript's text item delimiters to oldDelims
+				if (count of urlParts) > 1 and (item -1 of urlParts) is "" then
+					set isQueryEmpty to true
+				end if
+			end if
+			
+			if isQueryEmpty then
+				-- Dynamically strip search endpoints to open base landing pages (zero hardcoding)
+				set oldDelims to AppleScript's text item delimiters
+				set searchPaths to {"/search?", "/search/", "/place?", "/wiki/Special:Search?"}
+				repeat with sPath in searchPaths
+					if targetURL contains sPath then
+						set AppleScript's text item delimiters to (sPath as string)
+						set targetURL to text item 1 of targetURL
+						exit repeat
+					end if
+				end repeat
+				
+				if targetURL contains "?" then
+					set AppleScript's text item delimiters to "?"
+					set targetURL to text item 1 of targetURL
+				end if
+				set AppleScript's text item delimiters to oldDelims
+			else
+				-- FIX FOR INTERLINKED
+				if targetURL contains "interlinked.apple.com/chat?prompt=" then
+					set oldDelims to AppleScript's text item delimiters
+					set AppleScript's text item delimiters to "?prompt="
+					set baseURL to text item 1 of targetURL
+					set promptText to text item 2 of targetURL
+					
+					set promptText to do shell script "python3 -c 'import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1]))' " & quoted form of promptText
+					
+					set targetURL to baseURL & "?prompt=" & promptText
+					set AppleScript's text item delimiters to oldDelims
+				end if
 			end if
 		else
 			set finalChosenTarget to ""
@@ -568,54 +526,8 @@ on run {input, parameters}
 				set chosenEngine to "Apple Marketing"
 			end if
 			
-			if chosenEngine contains "Guidelines" then
-				set getKeysCmd to "python3 -c \"import json; d=json.load(open('" & guidelinesFile & "')); print('\\n'.join([k for k in d.keys() if not k.startswith('_')]))\""
-				set rawGuidelineTitles to paragraphs of (do shell script getKeysCmd)
-				
-				set numberedGuidelineTitles to {}
-				set gCounter to 1
-				set totalGuidelines to count of rawGuidelineTitles
-				
-				repeat with g_idx from 1 to totalGuidelines
-					set gTitle to item g_idx of rawGuidelineTitles
-					if gTitle is not "" then
-						set end of numberedGuidelineTitles to (gCounter as string) & ". " & gTitle
-						set gCounter to gCounter + 1
-					end if
-				end repeat
-				
-				set editOption to (gCounter as string) & ". ✏️ Edit Guidelines List..."
-				set end of numberedGuidelineTitles to editOption
-				
-				tell application uiApp
-					activate
-					set chosenGuideline to choose from list numberedGuidelineTitles with prompt ("Select Project Guidelines to open:" & return) default items {item 1 of numberedGuidelineTitles} with title "OmniSearch Guidelines"
-				end tell
-				
-				if chosenGuideline is not false then
-					set selectedChoice to item 1 of chosenGuideline
-					if selectedChoice contains "Edit Guidelines List..." then
-						do shell script "open " & quoted form of guidelinesFile
-						return (searchTerm as string)
-					else
-						set oldDelims to AppleScript's text item delimiters
-						set AppleScript's text item delimiters to ". "
-						set titlePieces to text items of selectedChoice
-						set selectedTitle to items 2 thru -1 of titlePieces as string
-						set AppleScript's text item delimiters to oldDelims
-						
-						set getUrlCmd to "python3 -c \"import json, sys; d=json.load(open('" & guidelinesFile & "')); print(d[sys.argv[1]])\" " & quoted form of selectedTitle
-						set targetURL to do shell script getUrlCmd
-						set isDirectURL to true
-					end if
-				else
-					return (searchTerm as string)
-				end if
-			end if
-			
-			if not isDirectURL then
-				set matchingTargets to {}
-				set availableRegions to {}
+			set matchingTargets to {}
+			set availableRegions to {}
 			
 			repeat with tgt_idx from 1 to count of userSavedTargetsList
 				set tgt to item tgt_idx of userSavedTargetsList
@@ -699,26 +611,16 @@ on run {input, parameters}
 			set lowerLocaleDash to do shell script "echo " & quoted form of extractedLocale & " | tr '[:upper:]' '[:lower:]' | tr '_' '-'"
 			set lowerCountry to do shell script "echo " & quoted form of locCountry & " | tr '[:upper:]' '[:lower:]'"
 			
-			if searchTerm is "" then
-				if isMarketing then
-					set targetURL to "https://marketingtools.apple.com"
-				else if isMusic then
-					set targetURL to "https://music.apple.com/" & lowerCountry
-				else if isGoogleSearch then
-					set targetURL to "https://www.google.com"
-				end if
-			else
-				if isMarketing then
-					set targetURL to "https://toolbox.marketingtools.apple.com/en-us?sf=" & lowerCountry & "&q=" & searchTerm
-				else if isMusic then
-					set targetURL to "https://music.apple.com/" & lowerCountry & "/search?term=" & searchTerm
-				else if isGoogleSearch then
-					set targetURL to "https://www.google.com/search?q=" & searchTerm & "&gl=" & lowerCountry & "&hl=" & lowerLocaleDash
-				end if
+			if isMarketing then
+				set targetURL to "https://toolbox.marketingtools.apple.com/en-us?sf=" & lowerCountry & "&q=" & searchTerm
+			else if isMusic then
+				set targetURL to "https://music.apple.com/" & lowerCountry & "/search?term=" & searchTerm
+			else if isGoogleSearch then
+				set targetURL to "https://www.google.com/search?q=" & searchTerm & "&gl=" & lowerCountry & "&hl=" & lowerLocaleDash
 			end if
 			
-			-- CLEAN THE LINK: Swap spaces for "+" on Marketing tools
-			if targetURL contains "marketingtools.apple.com" then
+			-- CLEAN THE LINK: Swap spaces for "+" on Google and Marketing tools
+			if targetURL contains "google.com" or targetURL contains "marketingtools.apple.com" then
 				set oldDelims to AppleScript's text item delimiters
 				set AppleScript's text item delimiters to {"%2520", "%20", " "}
 				set urlPieces to text items of targetURL
@@ -727,7 +629,6 @@ on run {input, parameters}
 				set AppleScript's text item delimiters to oldDelims
 			end if
 		end if
-	end if
 		
 		-- ==========================================
 		-- 6. SAFARI EXECUTION
@@ -796,7 +697,7 @@ on run {input, parameters}
 										exit repeat
 									end if
 								end repeat
-
+								
 								if targetTabIndex > 0 then
 									set targetTab to tab targetTabIndex
 									set URL of targetTab to targetURL
@@ -855,7 +756,7 @@ on run {input, parameters}
 												exit repeat
 											end if
 										end repeat
-
+										
 										if targetTabIndex > 0 then
 											set targetTab to tab targetTabIndex
 											set URL of targetTab to targetURL
@@ -884,7 +785,7 @@ on run {input, parameters}
 												exit repeat
 											end if
 										end repeat
-
+										
 										if targetTabIndex > 0 then
 											set targetTab to tab targetTabIndex
 											set URL of targetTab to targetURL
@@ -996,6 +897,5 @@ on run {input, parameters}
 		end if
 		
 	end timeout
-	return (searchTerm as string)
+	return (targetURL as string)
 end run
-```
