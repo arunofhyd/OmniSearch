@@ -1,7 +1,7 @@
 {
   "versions": [
     {
-      "version": "1.1",
+      "version": "1.1.0",
       "link": "https://www.icloud.com/shortcuts/97b9353e6fc94173bd0d7319adafa5f1",
       "subtitle": "With Auto-Updater",
       "secondary": false,
@@ -24,7 +24,7 @@
       ]
     },
     {
-      "version": "1.0",
+      "version": "1.0.0",
       "link": "https://www.icloud.com/shortcuts/d2d30b6095b341b6afb41407ac443d59",
       "subtitle": "Safe & Production Ready",
       "secondary": true,

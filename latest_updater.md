@@ -348,7 +348,7 @@ on run {input, parameters}
 		-- AUTO-UPDATE CHECK:
 		-- ==========================================
 		set updateFrequency to "always"
-		set currentVersion to 1.1
+		set currentVersion to "1.1.0"
 		set dateCache to "/tmp/omnisearch_lastcheck.txt"
 		set todayDate to (current date)
 		set todayDateString to short date string of todayDate
@@ -374,42 +374,32 @@ on run {input, parameters}
 		
 		if shouldCheck then
 			try
-				set versionData to do shell script "python3 -c \"import subprocess, json; res=subprocess.run(['curl', '-s', '--max-time', '2', 'https://raw.githubusercontent.com/arunofhyd/OmniSearch/main/version.json'], capture_output=True, text=True).stdout; d=json.loads(res); v=d['versions'][0]; print(f'{v[\\\"version\\\"]}|{v.get(\\\"link\\\", \\\"\\\")}')\""
+				set versionCheckCmd to "python3 -c \"import subprocess, json; res=subprocess.run(['curl', '-s', '--max-time', '2', 'https://raw.githubusercontent.com/arunofhyd/OmniSearch/main/version.json'], capture_output=True, text=True).stdout; d=json.loads(res); v=d['versions'][0]; r_str=v['version']; link=v.get('link',''); r_v=tuple(map(int, r_str.split('.'))); c_v=tuple(map(int, '" & currentVersion & "'.split('.'))); print(f'UPDATE|{r_str}|{link}' if r_v > c_v else 'OK')\""
+				set versionData to do shell script versionCheckCmd
 				
-				if versionData is not "" then
+				if versionData starts with "UPDATE|" then
 					set oldDelims to AppleScript's text item delimiters
 					set AppleScript's text item delimiters to "|"
-					set remoteVersionString to text item 1 of versionData
-					set remoteUpdateLink to text item 2 of versionData
+					set remoteVersionString to text item 2 of versionData
+					set remoteUpdateLink to text item 3 of versionData
 					set AppleScript's text item delimiters to oldDelims
 					
-					set oldDelims to AppleScript's text item delimiters
-					set AppleScript's text item delimiters to "."
-					set remotePieces to text items of remoteVersionString
-					set AppleScript's text item delimiters to (character 2 of (0.5 as string))
-					set localizedRemoteVersionString to remotePieces as string
-					set AppleScript's text item delimiters to oldDelims
-					
-					set remoteVersion to localizedRemoteVersionString as real
-					
-					if remoteVersion > currentVersion then
-						tell application uiApp
-							set dialogResult to display dialog "A new version of Omni Search (v" & remoteVersionString & ") is available!" & return & return & "You are currently running v" & currentVersion & ". Would you like to update now?" with title "Omni Search Update" buttons {"Skip for now", "Update Now"} default button "Update Now"
-							
-							if button returned of dialogResult is "Update Now" then
-								if remoteUpdateLink is not "" then
-									open location remoteUpdateLink
-								end if
-								return (searchTerm as string)
+					tell application uiApp
+						set dialogResult to display dialog "A new version of Omni Search (v" & remoteVersionString & ") is available!" & return & return & "You are currently running v" & currentVersion & ". Would you like to update now?" with title "Omni Search Update" buttons {"Skip for now", "Update Now"} default button "Update Now"
+						
+						if button returned of dialogResult is "Update Now" then
+							if remoteUpdateLink is not "" then
+								open location remoteUpdateLink
 							end if
-						end tell
-					end if
-					
-					if updateFrequency is "daily" then
-						do shell script "echo " & quoted form of todayDateString & " > " & quoted form of dateCache
-					else if updateFrequency is "weekly" then
-						do shell script "echo " & quoted form of weekIdentifier & " > " & quoted form of dateCache
-					end if
+							return (searchTerm as string)
+						end if
+					end tell
+				end if
+				
+				if updateFrequency is "daily" then
+					do shell script "echo " & quoted form of todayDateString & " > " & quoted form of dateCache
+				else if updateFrequency is "weekly" then
+					do shell script "echo " & quoted form of weekIdentifier & " > " & quoted form of dateCache
 				end if
 			on error
 				-- Silent fail on network error to allow search to proceed
