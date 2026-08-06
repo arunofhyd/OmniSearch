@@ -164,85 +164,92 @@ on run {input, parameters}
 						end if
 					end if
 					
-					set engineOptions to {"1. Apple Marketing 📺", "2. Apple Music 🎵", "3. Google 🔍"}
-					set chosenEnginesList to choose from list engineOptions with prompt ("Select the search engines you want multiple locales for:" & return & "(Hold Command ⌘ to select multiple)" & return) default items {item 1 of engineOptions} with title "OmniSearch Setup (4/5)" with multiple selections allowed
+					set engineOptions to {"0. None (Default locales only) 🚫", "1. Apple Marketing 📺", "2. Apple Music 🎵", "3. Google 🔍"}
+					set chosenEnginesList to choose from list engineOptions with prompt ("Select the search engines you want multiple locales for:" & return & "(Hold Command ⌘ to select multiple)" & return) default items {item 2 of engineOptions} with title "OmniSearch Setup (4/5)" with multiple selections allowed
 					
 					set cleanTargetList to {}
 					if chosenEnginesList is not false then
-						repeat with chosenEng_idx from 1 to count of chosenEnginesList
-							set chosenEng to item chosenEng_idx of chosenEnginesList
-							set oldDelims to AppleScript's text item delimiters
-							set AppleScript's text item delimiters to " "
-							set engPieces to text items of chosenEng
-							set engName to items 2 thru -2 of engPieces as string
-							set AppleScript's text item delimiters to oldDelims
-							
-							set filteredLocaleData to {}
-							repeat with locItem_idx from 1 to count of localeData
-								set locItem to item locItem_idx of localeData
-								if (engName contains "Apple") and (locItem contains "hi_IN") then
-									-- Skip hi_IN for Apple services
-								else
-									set end of filteredLocaleData to locItem
-								end if
-							end repeat
-							
-							set totalLocales to count of filteredLocaleData
-							set locOptions to {"0. [ADD ALL REGIONS] 🌍"}
-							set optCounter to 1
-							repeat with locItem_idx from 1 to count of filteredLocaleData
-								set locItem to item locItem_idx of filteredLocaleData
+						set isNoneChosen to false
+						repeat with checkEng in chosenEnginesList
+							if checkEng contains "None" then set isNoneChosen to true
+						end repeat
+						
+						if not isNoneChosen then
+							repeat with chosenEng_idx from 1 to count of chosenEnginesList
+								set chosenEng to item chosenEng_idx of chosenEnginesList
 								set oldDelims to AppleScript's text item delimiters
-								set AppleScript's text item delimiters to "|"
-								set locCode to text item 1 of locItem
-								set locFlag to text item 2 of locItem
+								set AppleScript's text item delimiters to " "
+								set engPieces to text items of chosenEng
+								set engName to items 2 thru -2 of engPieces as string
 								set AppleScript's text item delimiters to oldDelims
 								
-								if optCounter is 1 and totalLocales > 9 then
-									set numPrefix to "01"
-								else
-									set numPrefix to (optCounter as string)
-								end if
-								
-								set end of locOptions to numPrefix & ". " & locCode & " " & locFlag
-								set optCounter to optCounter + 1
-							end repeat
-							
-							set chosenLocales to choose from list locOptions with prompt ("Select regions for " & engName & ":" & return & "(Hold Command ⌘ to select multiple)" & return) default items {item 2 of locOptions} with title "OmniSearch Setup (5/5)" with multiple selections allowed
-							
-							if chosenLocales is not false then
-								set addAll to false
-								repeat with checkLoc_idx from 1 to count of chosenLocales
-									set checkLoc to item checkLoc_idx of chosenLocales
-									if checkLoc contains "[ADD ALL REGIONS]" then set addAll to true
+								set filteredLocaleData to {}
+								repeat with locItem_idx from 1 to count of localeData
+									set locItem to item locItem_idx of localeData
+									if (engName contains "Apple") and (locItem contains "hi_IN") then
+										-- Skip hi_IN for Apple services
+									else
+										set end of filteredLocaleData to locItem
+									end if
 								end repeat
 								
-								if addAll then
-									repeat with locItem_idx from 1 to count of filteredLocaleData
-										set locItem to item locItem_idx of filteredLocaleData
-										set oldDelims to AppleScript's text item delimiters
-										set AppleScript's text item delimiters to "|"
-										set pureCode to text item 1 of locItem
-										set pureFlag to text item 2 of locItem
-										set AppleScript's text item delimiters to oldDelims
-										set end of cleanTargetList to engName & " (" & pureCode & ") " & pureFlag
+								set totalLocales to count of filteredLocaleData
+								set locOptions to {"0. [ADD ALL REGIONS] 🌍"}
+								set optCounter to 1
+								repeat with locItem_idx from 1 to count of filteredLocaleData
+									set locItem to item locItem_idx of filteredLocaleData
+									set oldDelims to AppleScript's text item delimiters
+									set AppleScript's text item delimiters to "|"
+									set locCode to text item 1 of locItem
+									set locFlag to text item 2 of locItem
+									set AppleScript's text item delimiters to oldDelims
+									
+									if optCounter is 1 and totalLocales > 9 then
+										set numPrefix to "01"
+									else
+										set numPrefix to (optCounter as string)
+									end if
+									
+									set end of locOptions to numPrefix & ". " & locCode & " " & locFlag
+									set optCounter to optCounter + 1
+								end repeat
+								
+								set chosenLocales to choose from list locOptions with prompt ("Select regions for " & engName & ":" & return & "(Hold Command ⌘ to select multiple)" & return) default items {item 2 of locOptions} with title "OmniSearch Setup (5/5)" with multiple selections allowed
+								
+								if chosenLocales is not false then
+									set addAll to false
+									repeat with checkLoc_idx from 1 to count of chosenLocales
+										set checkLoc to item checkLoc_idx of chosenLocales
+										if checkLoc contains "[ADD ALL REGIONS]" then set addAll to true
 									end repeat
-								else
-									repeat with cLoc_idx from 1 to count of chosenLocales
-										set cLoc to item cLoc_idx of chosenLocales
-										set oldDelims to AppleScript's text item delimiters
-										set AppleScript's text item delimiters to ". "
-										set cleanLoc to text item 2 of cLoc
-										set AppleScript's text item delimiters to " "
-										set pureCode to text item 1 of cleanLoc
-										set pureFlag to text item 2 of cleanLoc
-										set AppleScript's text item delimiters to oldDelims
-										
-										set end of cleanTargetList to engName & " (" & pureCode & ") " & pureFlag
-									end repeat
+									
+									if addAll then
+										repeat with locItem_idx from 1 to count of filteredLocaleData
+											set locItem to item locItem_idx of filteredLocaleData
+											set oldDelims to AppleScript's text item delimiters
+											set AppleScript's text item delimiters to "|"
+											set pureCode to text item 1 of locItem
+											set pureFlag to text item 2 of locItem
+											set AppleScript's text item delimiters to oldDelims
+											set end of cleanTargetList to engName & " (" & pureCode & ") " & pureFlag
+										end repeat
+									else
+										repeat with cLoc_idx from 1 to count of chosenLocales
+											set cLoc to item cLoc_idx of chosenLocales
+											set oldDelims to AppleScript's text item delimiters
+											set AppleScript's text item delimiters to ". "
+											set cleanLoc to text item 2 of cLoc
+											set AppleScript's text item delimiters to " "
+											set pureCode to text item 1 of cleanLoc
+											set pureFlag to text item 2 of cleanLoc
+											set AppleScript's text item delimiters to oldDelims
+											
+											set end of cleanTargetList to engName & " (" & pureCode & ") " & pureFlag
+										end repeat
+									end if
 								end if
-							end if
-						end repeat
+							end repeat
+						end if
 					end if
 					
 					set validMkt to {}
@@ -260,12 +267,15 @@ on run {input, parameters}
 				if (count of validMus) is 0 then set end of validMus to "Apple Music (en_US) 🇺🇸"
 				if (count of validGoog) is 0 then set end of validGoog to "Google (en_US) 🇺🇸"
 				
-				set finishText to "Setup Complete! 🎉" & return & return
-				set finishText to finishText & "Your settings have been saved to:" & return & "Home > OmniSearch > OmniSearch_Preferences.txt" & return & return
-				set finishText to finishText & "💡 MAGIC SHORTCUTS:" & return
-				set finishText to finishText & "• Search 'omnisettings' to quickly open this file." & return
-				set finishText to finishText & "• Search 'omnireset' to run this setup wizard again." & return & return
-				set finishText to finishText & "A copy of these details has been saved to your Desktop."
+				set finishText to "Setup Complete! 🎉" & return & return & ¬
+					"Your settings have been saved to:" & return & ¬
+					"📁 Home > OmniSearch > OmniSearch_Preferences.txt" & return & return & ¬
+					"───────────────────────────" & return & ¬
+					"💡 MAGIC KEYWORDS:" & return & ¬
+					"• 'omnisettings'  ➔  Open preferences file" & return & ¬
+					"• 'omnireset'      ➔  Re-run setup wizard" & return & ¬
+					"───────────────────────────" & return & ¬
+					"A copy of these details has been saved to your Desktop."
 				
 				display dialog finishText with title "OmniSearch Setup Complete" buttons {"Awesome!"} default button "Awesome!" with icon note
 			end tell -- END UI BLOCK
