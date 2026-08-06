@@ -67,7 +67,7 @@ on run {input, parameters}
 		set preSelectedEngine to ""
 		
 		if not isResetCommand then
-			if searchTerm starts with "http" then
+			if trimmedTerm starts with "http" or trimmedTerm starts with "www." or trimmedTerm contains "://" then
 				set isDirectURL to true
 			end if
 		end if
@@ -392,7 +392,7 @@ on run {input, parameters}
 		-- 5. SMART TARGET MENU & DYNAMIC URL GENERATOR
 		-- ==========================================
 		if isDirectURL then
-			set targetURL to (item 1 of input) as string
+			set targetURL to trimmedTerm
 			
 			-- DYNAMIC URL CLEANER: Handles ANY search engine passed from Shortcut text blocks
 			-- Checks if search term is empty (URL ends with '=' or has no value after '=')
