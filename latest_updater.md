@@ -699,10 +699,13 @@ on run {input, parameters}
 						
 						if baseDomain is not "" then
 							try
+								set isMapsTarget to (targetURL contains "google.com/maps" or targetURL contains "maps.google.com")
 								set allURLs to URL of tabs
 								set targetTabIndex to 0
 								repeat with i from 1 to count of allURLs
-									if ((item i of allURLs) as string) contains baseDomain then
+									set tabURL to (item i of allURLs) as string
+									set isMapsTab to (tabURL contains "google.com/maps" or tabURL contains "maps.google.com")
+									if (isMapsTarget is equal to isMapsTab) and (tabURL contains baseDomain) then
 										set targetTabIndex to i
 										exit repeat
 									end if
@@ -758,10 +761,13 @@ on run {input, parameters}
 								
 								if baseDomain is not "" then
 									try
+										set isMapsTarget to (targetURL contains "google.com/maps" or targetURL contains "maps.google.com")
 										set allURLs to URL of tabs
 										set targetTabIndex to 0
 										repeat with i from 1 to count of allURLs
-											if ((item i of allURLs) as string) contains baseDomain then
+											set tabURL to (item i of allURLs) as string
+											set isMapsTab to (tabURL contains "google.com/maps" or tabURL contains "maps.google.com")
+											if (isMapsTarget is equal to isMapsTab) and (tabURL contains baseDomain) then
 												set targetTabIndex to i
 												exit repeat
 											end if
